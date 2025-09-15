@@ -1,7 +1,7 @@
 import { View } from "react-native";
 import { CustomText } from "./ui/Text";
 
-export function Home() {
+export function Transactions() {
   return (
     <>
       <View
@@ -10,9 +10,9 @@ export function Home() {
           alignItems: "center",
           justifyContent: "center",
         }}
-        className="bg-gray-1 dark:bg-gray-12"
+        className="bg-gray-1 dark:bg-dark-background"
       >
-        <CustomText>Home</CustomText>
+        <CustomText>Transactions</CustomText>
       </View>
     </>
   );
