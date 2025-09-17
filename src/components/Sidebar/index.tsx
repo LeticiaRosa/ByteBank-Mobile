@@ -23,6 +23,7 @@ export function MyDrawer() {
   // Cores baseadas no theme.ts simplificado
   const theme = getThemeColors(isDark);
   const mainColor = theme.primary;
+  const secondaryColor = theme.secondary;
   const accentColor = theme.sidebar;
 
   return (
@@ -39,7 +40,7 @@ export function MyDrawer() {
         },
         drawerInactiveTintColor: theme.sidebarForeground,
         drawerActiveTintColor: theme.sidebarForeground,
-        // drawerActiveBackgroundColor: mainColor,
+        drawerActiveBackgroundColor: secondaryColor,
         drawerLabelStyle: {
           color: theme.sidebarForeground,
           marginLeft: 12, // Padding entre ícone e texto

@@ -188,7 +188,7 @@ export const lightTheme = {
   ring: colors.light.blue[7],
 
   // Extras
-  secondary: colors.light.gray[3],
+  secondary: colors.light.gray[5],
   secondaryForeground: colors.light.gray[12],
   accent: colors.light.blue[4],
   accentForeground: colors.light.blue[12],
@@ -227,7 +227,7 @@ export const darkTheme = {
   ring: colors.dark.blue[8],
 
   // Extras
-  secondary: colors.dark.gray[3],
+  secondary: colors.dark.blue[5],
   secondaryForeground: colors.dark.gray[11],
   accent: colors.dark.blue[4],
   accentForeground: colors.dark.blue[11],
@@ -259,6 +259,7 @@ export const getThemeColors = (isDark: boolean) => {
     background: theme.background,
     foreground: theme.foreground,
     primary: theme.primary,
+    secondary: theme.secondary,
     muted: theme.muted,
     border: theme.border,
     card: theme.card,
