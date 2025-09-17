@@ -24,35 +24,36 @@ export function MyDrawer() {
   const theme = getThemeColors(isDark);
   const mainColor = theme.primary;
   const accentColor = theme.sidebar;
-  const activeBackgroundColor = theme.muted;
 
   return (
     <Drawer.Navigator
       screenOptions={{
         headerStyle: {
           backgroundColor: mainColor,
-          color: theme.sidebarForeground,
+          color: mainColor,
         },
+        headerTintColor: accentColor,
         drawerStyle: {
           backgroundColor: accentColor,
           width: styles.drawerContainer.width,
         },
-        drawerActiveTintColor: mainColor,
-        drawerActiveBackgroundColor: activeBackgroundColor,
+        drawerInactiveTintColor: theme.sidebarForeground,
+        drawerActiveTintColor: theme.sidebarForeground,
+        // drawerActiveBackgroundColor: mainColor,
         drawerLabelStyle: {
           color: theme.sidebarForeground,
           marginLeft: 12, // Padding entre ícone e texto
         },
+
         headerRight: () => (
           <TouchableOpacity
             onPress={() => navigation.navigate("Perfil")}
             style={styles.headerButton}
           >
-            <UserCircle color={mainColor} size={24} />
+            <UserCircle color={accentColor} size={24} />
           </TouchableOpacity>
         ),
       }}
-      className="bg-gray-1 dark:bg-gray-12 text-gray-12 dark:text-gray-1"
     >
       <Drawer.Screen
         name="Home"

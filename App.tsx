@@ -12,7 +12,10 @@ function AppContent() {
   return (
     <SafeAreaProvider>
       <SafeAreaView
-        style={{ flex: 1, backgroundColor: isDark ? "#000000" : "#ffffff" }}
+        style={{
+          flex: 1,
+          backgroundColor: isDark ? "#000000" : "#ffffff",
+        }}
       >
         <StatusBar
           barStyle={isDark ? "light-content" : "dark-content"}
