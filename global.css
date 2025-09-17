@@ -2,64 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Tema ByteBank - Variáveis CSS para modo claro e escuro */
-:root {
-  /* Blue scale para tema claro */
-  --color-blue-1: #f7faff;
-  --color-blue-2: #eef5ff;
-  --color-blue-3: #e6f0ff;
-  --color-blue-4: #d9e8ff;
-  --color-blue-5: #c7defc;
-  --color-blue-6: #abd0f9;
-  --color-blue-7: #88bcf5;
-  --color-blue-8: #5b9eee;
-  --color-blue-9: #003cb3; /* Cor principal */
-  --color-blue-10: #1456bd;
-  --color-blue-11: #2a70c8;
-  --color-blue-12: #0030a0;
+/* ByteBank - Sistema LIMPO para React Native */
+/* TODAS as cores vêm do theme.ts via Tailwind! */
 
-  /* Gray scale para tema claro */
-  --color-gray-1: #fcfcfc;
-  --color-gray-2: #f9f9f9;
-  --color-gray-3: #f0f0f0;
-  --color-gray-4: #e6e6e6;
-  --color-gray-5: #dfdfdf;
-  --color-gray-6: #d8d8d8;
-  --color-gray-7: #c9c9c9;
-  --color-gray-8: #b8b8b8;
-  --color-gray-9: #a0a0a0;
-  --color-gray-10: #8f8f8f;
-  --color-gray-11: #6e6e6e;
-  --color-gray-12: #171717;
+/* Apenas variáveis de layout */
+:root {
+  --radius: 8px;
 }
 
-/* Tema escuro */
-.dark {
-  /* Blue scale para tema escuro */
-  --color-blue-1: #0a1933;
-  --color-blue-2: #112042;
-  --color-blue-3: #1a2f5a;
-  --color-blue-4: #22396b;
-  --color-blue-5: #2b447d;
-  --color-blue-6: #355090;
-  --color-blue-7: #4264a8;
-  --color-blue-8: #5279c1;
-  --color-blue-9: #c6cbef; /* Cor principal escura */
-  --color-blue-10: #b8bfe8;
-  --color-blue-11: #4089ee;
-  --color-blue-12: #e8eaf6;
-
-  /* Gray scale para tema escuro */
-  --color-gray-1: #18181b;
-  --color-gray-2: #1f1f23;
-  --color-gray-3: #27272a;
-  --color-gray-4: #2e2e32;
-  --color-gray-5: #35353a;
-  --color-gray-6: #3f3f46;
-  --color-gray-7: #4a4a55;
-  --color-gray-8: #5a5a69;
-  --color-gray-9: #71717a;
-  --color-gray-10: #8b8b95;
-  --color-gray-11: #a1a1aa;
-  --color-gray-12: #f9fafb;
+/* Base styles mínimos */
+body {
+  font-family: system-ui, -apple-system, sans-serif;
 }

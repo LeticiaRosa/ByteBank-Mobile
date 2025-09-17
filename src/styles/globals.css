@@ -1,0 +1,47 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* ByteBank - Sistema de Design Simplificado */
+/* TODAS as cores vêm do theme.ts - SEM duplicação! */
+
+/* === VARIÁVEIS CSS DINÂMICAS === */
+:root {
+  --radius: 0.5rem;
+}
+
+/* === BASE STYLES === */
+@layer base {
+  * {
+    border-color: theme("colors.border");
+  }
+
+  body {
+    background-color: theme("colors.background");
+    color: theme("colors.foreground");
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+
+  /* Scrollbar simplificado */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: theme("colors.border") transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: theme("colors.border");
+    border-radius: 3px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: theme("colors.muted.foreground");
+  }
+}

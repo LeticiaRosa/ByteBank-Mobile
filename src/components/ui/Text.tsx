@@ -7,7 +7,7 @@ interface CustomTextProps {
 }
 
 export function CustomText({ children, className }: CustomTextProps) {
-  const baseClasses = "text-gray-12 dark:text-gray-1";
+  const baseClasses = "pl-2 text-gray-12 dark:text-gray-1";
   const combinedClasses = className
     ? `${baseClasses} ${className}`
     : baseClasses;

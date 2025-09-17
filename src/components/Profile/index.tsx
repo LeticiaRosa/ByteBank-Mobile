@@ -1,4 +1,4 @@
-import { View, Text, Switch, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Switch, TouchableOpacity } from "react-native";
 import {
   User,
   Moon,
@@ -9,17 +9,23 @@ import {
   HelpCircle,
   LogOut,
 } from "lucide-react-native";
-import { useTheme } from "../hooks/useTheme";
-import { cardStyles, listStyles } from "../styles/components";
-import { CustomText } from "./ui/Text";
+import { useTheme } from "../../hooks/useTheme";
+import { getTheme } from "../../styles/theme";
+import { CustomText } from "../ui/Text";
+import { styles } from "./styles";
 
 export function Profile() {
   const { isDark, toggleTheme } = useTheme();
 
-  // Usar as cores dos componentes importados
-  const iconColor = listStyles.icon.color(isDark);
-  const cardStyle = cardStyles.container(isDark);
-  const titleStyle = cardStyles.title(isDark);
+  // Cores baseadas no theme.ts simplificado
+  const theme = getTheme(isDark);
+  const iconColor = theme.primary;
+  const backgroundColor = theme.background;
+  const cardBackgroundColor = theme.card;
+  const profileImageBg = theme.muted;
+  const borderColor = theme.border;
+  const switchTrackColor = isDark ? theme.muted : theme.border;
+  const logoutButtonBg = theme.muted;
 
   const profileOptions = [
     {
@@ -39,31 +45,19 @@ export function Profile() {
   return (
     <>
       <View
-        style={[
-          styles.container,
-          { backgroundColor: isDark ? "#18181b" : "#f5f5f5" },
-        ]}
+        style={[styles.container, { backgroundColor }]}
         className="flex-1 bg-gray-1 dark:bg-dark-background"
       >
         {/* Header */}
         <View
-          style={[
-            styles.header,
-            { backgroundColor: cardStyle.backgroundColor },
-          ]}
+          style={[styles.header, { backgroundColor: cardBackgroundColor }]}
           className="p-5 items-center bg-card dark:bg-dark-card"
         >
           <View
             style={[
               styles.profileImage,
-              {
-                backgroundColor: isDark ? "#3f3f46" : "#f0f0f0",
-                borderRadius: 40,
-                width: 80,
-                height: 80,
-                justifyContent: "center",
-                alignItems: "center",
-              },
+              styles.profileImageContainer,
+              { backgroundColor: profileImageBg },
             ]}
             className="w-20 h-20 rounded-full bg-gray-3 dark:bg-dark-gray-5 justify-center items-center mb-2"
           >
@@ -85,9 +79,9 @@ export function Profile() {
           <View
             style={[
               styles.settingItem,
+              styles.settingItemWithBorder,
               {
-                borderBottomColor: isDark ? "#3f3f46" : "#e0e0e0",
-                paddingVertical: 12,
+                borderBottomColor: borderColor,
                 borderBottomWidth: 1,
               },
             ]}
@@ -98,15 +92,13 @@ export function Profile() {
               ) : (
                 <Sun size={20} color={iconColor} />
               )}
-              <Text style={[styles.settingText, { color: titleStyle.color }]}>
-                Modo Escuro
-              </Text>
+              <CustomText>Modo Escuro</CustomText>
             </View>
             <Switch
               value={isDark}
               onValueChange={toggleTheme}
               trackColor={{
-                false: isDark ? "#3f3f46" : "#767577",
+                false: switchTrackColor,
                 true: iconColor,
               }}
               thumbColor={isDark ? "#4089ee" : "#f4f3f4"}
@@ -119,20 +111,17 @@ export function Profile() {
               key={index}
               style={[
                 styles.settingItem,
+                styles.settingItemWithBorder,
                 {
-                  borderBottomColor: isDark ? "#3f3f46" : "#e0e0e0",
-                  paddingVertical: 12,
+                  borderBottomColor: borderColor,
                   borderBottomWidth:
                     index === profileOptions.length - 1 ? 0 : 1,
                 },
               ]}
-              onPress={option.onPress}
             >
               <View style={styles.settingLeft}>
                 {option.icon}
-                <Text style={[styles.settingText, { color: titleStyle.color }]}>
-                  {option.title}
-                </Text>
+                <CustomText>{option.title}</CustomText>
               </View>
               <ChevronRight size={18} color={iconColor} />
             </TouchableOpacity>
@@ -144,75 +133,16 @@ export function Profile() {
           style={[
             styles.logoutButton,
             {
-              backgroundColor: isDark ? "#27272a" : "#e0e0e0",
-              borderWidth: 1,
+              backgroundColor: logoutButtonBg,
               borderColor: iconColor,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              marginHorizontal: 16,
-              marginTop: 20,
-              padding: 12,
-              borderRadius: 8,
             },
           ]}
           onPress={() => console.log("Logout pressed")}
         >
           <LogOut size={18} color={iconColor} />
-          <Text style={[styles.logoutText, { color: iconColor }]}>
-            Sair da Conta
-          </Text>
+          <CustomText>Sair da Conta</CustomText>
         </TouchableOpacity>
       </View>
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    padding: 20,
-    alignItems: "center",
-  },
-  profileImage: {
-    marginBottom: 10,
-  },
-  profileName: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  profileEmail: {
-    fontSize: 14,
-  },
-  settingsContainer: {
-    padding: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  settingItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  settingLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  settingText: {
-    marginLeft: 12,
-    fontSize: 16,
-  },
-  logoutButton: {
-    // Estilos inline são aplicados no componente
-  },
-  logoutText: {
-    marginLeft: 8,
-    fontSize: 16,
-    fontWeight: "500",
-  },
-});

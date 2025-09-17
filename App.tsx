@@ -3,7 +3,7 @@ import "./global.css";
 import { MyDrawer } from "./src/components/Sidebar";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "./src/hooks/useTheme";
-import { CustomStatusBar } from "./src/components/ui/StatusBar";
+import { StatusBar } from "react-native";
 
 // Componente interno que usa o hook
 function AppContent() {
@@ -14,7 +14,11 @@ function AppContent() {
       <SafeAreaView
         style={{ flex: 1, backgroundColor: isDark ? "#000000" : "#ffffff" }}
       >
-        <CustomStatusBar />
+        <StatusBar
+          barStyle={isDark ? "light-content" : "dark-content"}
+          backgroundColor={isDark ? "#000000" : "#ffffff"}
+          translucent={false}
+        />
         <NavigationContainer>
           <MyDrawer />
         </NavigationContainer>
