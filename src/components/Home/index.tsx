@@ -6,7 +6,7 @@ export function Home() {
   return (
     <>
       <View style={styles.container} className="bg-gray-1 dark:bg-gray-12">
-        <CustomText>Home</CustomText>
+        <CustomText>Inicio</CustomText>
       </View>
     </>
   );

@@ -31,7 +31,6 @@ export function MyDrawer() {
       screenOptions={{
         headerStyle: {
           backgroundColor: mainColor,
-          color: mainColor,
         },
         headerTintColor: accentColor,
         drawerStyle: {
@@ -57,7 +56,7 @@ export function MyDrawer() {
       }}
     >
       <Drawer.Screen
-        name="Home"
+        name="Inicio"
         options={{
           drawerIcon: ({ color, size }: { color?: string; size?: number }) => (
             <House color={color} size={size ?? 18} />
@@ -86,6 +85,7 @@ export function MyDrawer() {
       >
         {(props: any) => <Transactions {...props} />}
       </Drawer.Screen>
+
       <Drawer.Screen
         name="Perfil"
         options={{

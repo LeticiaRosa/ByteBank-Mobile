@@ -1,39 +1,24 @@
-import { NavigationContainer } from "@react-navigation/native";
 import "./global.css";
-import { MyDrawer } from "./src/components/Sidebar";
-import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
-import { ThemeProvider, useTheme } from "./src/hooks/useTheme";
-import { StatusBar } from "react-native";
+import { ThemeProvider } from "./src/hooks/useTheme";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AuthForm } from "./src/components/AuthForm";
 
-// Componente interno que usa o hook
-function AppContent() {
-  const { isDark } = useTheme();
-  console.log(isDark);
-  return (
-    <SafeAreaProvider>
-      <SafeAreaView
-        style={{
-          flex: 1,
-          backgroundColor: isDark ? "#000000" : "#ffffff",
-        }}
-      >
-        <StatusBar
-          barStyle={isDark ? "light-content" : "dark-content"}
-          backgroundColor={isDark ? "#000000" : "#ffffff"}
-          translucent={false}
-        />
-        <NavigationContainer>
-          <MyDrawer />
-        </NavigationContainer>
-      </SafeAreaView>
-    </SafeAreaProvider>
-  );
-}
+// Criar instância do QueryClient
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutos
+      retry: 2,
+    },
+  },
+});
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthForm />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
