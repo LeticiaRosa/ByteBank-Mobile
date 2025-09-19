@@ -19,11 +19,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
-  formContainer: {
-    flex: 1,
-    padding: 24,
-    paddingTop: 32,
-  },
+
   inputGroup: {
     marginBottom: 20,
   },

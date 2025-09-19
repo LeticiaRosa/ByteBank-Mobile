@@ -1,7 +1,8 @@
 import { useAuth } from "../../hooks/useAuth";
 import { UserRoutes } from "..";
-import { Login } from "../Login";
 import { View } from "react-native";
+import { styles } from "./styles";
+import { Login } from "../Login";
 
 export function AuthForm() {
   const { user } = useAuth();
@@ -11,7 +12,7 @@ export function AuthForm() {
   }
 
   return (
-    <View className="flex flex-col items-center justify-center w-full h-full bg-black">
+    <View style={styles.container} className="bg-gray-1 dark:bg-gray-12">
       <Login />
     </View>
   );

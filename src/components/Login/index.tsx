@@ -118,7 +118,7 @@ export function Login() {
       </View>
 
       {/* Formulário de Login */}
-      <View style={styles.formContainer} className="w-full h-full px-6">
+      <View className="w-full px-6">
         {/* Campo Nome Completo - apenas no modo cadastro */}
         {isSignUpMode && (
           <View style={styles.inputGroup}>
