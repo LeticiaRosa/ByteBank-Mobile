@@ -1,8 +1,8 @@
 import { useAuth } from "../../hooks/useAuth";
-import { UserRoutes } from "..";
 import { View } from "react-native";
 import { styles } from "./styles";
-import { Login } from "../Login";
+import { UserRoutes } from "../UserRoutes";
+import { Login } from "../UserRoutes/Login";
 
 export function AuthForm() {
   const { user } = useAuth();

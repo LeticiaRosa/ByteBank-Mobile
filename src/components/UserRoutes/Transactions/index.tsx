@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import { CustomText } from "../ui/Text";
+import { CustomText } from "../../ui/Text";
 import { styles } from "./styles";
 
 export function Transactions() {

@@ -14,10 +14,10 @@ import {
   LogIn,
   PiggyBankIcon,
 } from "lucide-react-native";
-import { useTheme } from "../../hooks/useTheme";
-import { useAuth } from "../../hooks/useAuth";
-import { getTheme } from "../../styles/theme";
-import { CustomText } from "../ui/Text";
+import { useTheme } from "../../../hooks/useTheme";
+import { useAuth } from "../../../hooks/useAuth";
+import { getTheme } from "../../../styles/theme";
+import { CustomText } from "../../ui/Text";
 import { styles } from "./styles";
 
 export function Login() {

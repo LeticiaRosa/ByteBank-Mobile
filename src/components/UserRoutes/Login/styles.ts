@@ -19,7 +19,6 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
-
   inputGroup: {
     marginBottom: 20,
   },

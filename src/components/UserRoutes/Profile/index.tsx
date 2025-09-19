@@ -9,11 +9,12 @@ import {
   HelpCircle,
   LogOut,
 } from "lucide-react-native";
-import { useTheme } from "../../hooks/useTheme";
-import { getTheme } from "../../styles/theme";
-import { CustomText } from "../ui/Text";
+
 import { styles } from "./styles";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "../../../hooks/useAuth";
+import { useTheme } from "../../../hooks/useTheme";
+import { getTheme } from "../../../styles/theme";
+import { CustomText } from "../../ui/Text";
 
 export function Profile() {
   const { isDark, toggleTheme } = useTheme();
@@ -64,7 +65,7 @@ export function Profile() {
           >
             <User size={40} color={iconColor} />
           </View>
-          <CustomText className="text-gray-12 text-lg font-bold text-card-foreground dark:text-dark-card-foreground">
+          <CustomText className="text-gray-12 text-lg font-bold  dark:text-dark-card-foreground">
             João da Silva
           </CustomText>
           <CustomText>joao.silva@example.com</CustomText>

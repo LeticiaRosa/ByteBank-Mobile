@@ -10,8 +10,8 @@ import {
 } from "lucide-react-native";
 import { TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { useTheme } from "../../hooks/useTheme";
-import { getThemeColors } from "../../styles/theme";
+import { useTheme } from "../../../hooks/useTheme";
+import { getThemeColors } from "../../../styles/theme";
 import { styles } from "./styles";
 
 const Drawer = createDrawerNavigator();

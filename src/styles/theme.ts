@@ -56,7 +56,7 @@ export const colors = {
       8: "#4bb6d9",
       9: "#004d61", // Primary
       10: "#1c5e73",
-      11: "#007798)",
+      11: "#007798",
       12: "#004256",
       contrast: "#ffffff",
     },
@@ -69,10 +69,10 @@ export const colors = {
       5: "#e0e1e6",
       6: "#d8dae0",
       7: "#cdced7",
-      8: "#b9bbc6)",
+      8: "#b9bbc6",
       9: "#8b8d98",
-      10: "#81828d)",
-      11: "#62636c)",
+      10: "#81828d",
+      11: "#62636c",
       12: "#1e1f24",
       contrast: "#ffffff",
     },
@@ -177,8 +177,8 @@ export const lightTheme = {
   primaryForeground: colors.light.blue.contrast,
 
   // Superfícies
-  card: colors.light.gray[1],
-  cardForeground: colors.light.gray[12],
+  card: colors.light.gray[3],
+  cardForeground: colors.light.gray[5],
   muted: colors.light.gray[3],
   mutedForeground: colors.light.gray[11],
 
@@ -216,8 +216,8 @@ export const darkTheme = {
   primaryForeground: colors.dark.blue[1],
 
   // Superfícies
-  card: colors.dark.gray[2],
-  cardForeground: colors.dark.gray[12],
+  card: colors.dark.gray[6],
+  cardForeground: colors.dark.gray[8],
   muted: colors.dark.gray[3],
   mutedForeground: colors.dark.gray[11],
 
