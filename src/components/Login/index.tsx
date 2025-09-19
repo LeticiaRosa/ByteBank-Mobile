@@ -1,4 +1,10 @@
-import { View, TextInput, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import { useState } from "react";
 import {
   User,
@@ -24,6 +30,7 @@ export function Login() {
   const [isSignUpMode, setIsSignUpMode] = useState(false);
   // Cores baseadas no theme.ts simplificado
   const theme = getTheme(isDark);
+  const backgroundColor = theme.background;
   const iconColor = theme.primary;
   const inputBackgroundColor = theme.muted;
   const borderColor = theme.border;
@@ -40,8 +47,6 @@ export function Login() {
 
     if (result.success) {
       Alert.alert("Sucesso", "Login realizado com sucesso!");
-      // Não precisa navegar manualmente - o AuthForm irá detectar
-      // automaticamente que o usuário foi autenticado e renderizar UserRoutes
     } else {
       Alert.alert("Erro", result.error?.message || "Erro ao fazer login");
     }
@@ -84,9 +89,15 @@ export function Login() {
   };
 
   return (
-    <View className="flex-1 bg-gray-1 dark:bg-dark-background w-full h-full">
+    <View
+      style={[styles.container, { backgroundColor }]}
+      className="flex-1 bg-gray-1 dark:bg-dark-background w-full h-full"
+    >
       {/* Header */}
-      <View className="p-5 items-center bg-card dark:bg-dark-card">
+      <View
+        style={[styles.header, { backgroundColor: backgroundColor }]}
+        className="p-5 items-center bg-card dark:bg-dark-card"
+      >
         <View
           style={[
             styles.logoContainer,
@@ -132,6 +143,7 @@ export function Login() {
                 onChangeText={setFullName}
                 autoCapitalize="words"
                 autoCorrect={false}
+                editable={!loading}
               />
             </View>
           </View>
@@ -161,6 +173,7 @@ export function Login() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
+              editable={!loading}
             />
           </View>
         </View>
@@ -189,10 +202,12 @@ export function Login() {
               secureTextEntry={!showPassword}
               autoCapitalize="none"
               autoCorrect={false}
+              editable={!loading}
             />
             <TouchableOpacity
               onPress={() => setShowPassword(!showPassword)}
               style={styles.eyeButton}
+              disabled={loading}
             >
               {showPassword ? (
                 <EyeOff size={20} color={iconColor} />
@@ -208,6 +223,7 @@ export function Login() {
           <TouchableOpacity
             onPress={handleForgotPassword}
             style={styles.forgotPasswordContainer}
+            disabled={loading}
           >
             <CustomText className="text-primary text-sm">
               Esqueceu sua senha?
@@ -227,7 +243,11 @@ export function Login() {
           onPress={isSignUpMode ? handleSignUp : handleLogin}
           disabled={loading}
         >
-          <LogIn size={20} color="#ffffff" />
+          {loading ? (
+            <ActivityIndicator size="small" color="#ffffff" />
+          ) : (
+            <LogIn size={20} color="#ffffff" />
+          )}
           <CustomText className="text-white font-semibold ml-2">
             {loading
               ? isSignUpMode

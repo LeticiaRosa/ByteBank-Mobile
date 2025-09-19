@@ -13,10 +13,11 @@ import { useTheme } from "../../hooks/useTheme";
 import { getTheme } from "../../styles/theme";
 import { CustomText } from "../ui/Text";
 import { styles } from "./styles";
+import { useAuth } from "../../hooks/useAuth";
 
 export function Profile() {
   const { isDark, toggleTheme } = useTheme();
-
+  const { signOut } = useAuth();
   // Cores baseadas no theme.ts simplificado
   const theme = getTheme(isDark);
   const iconColor = theme.primary;
@@ -137,7 +138,7 @@ export function Profile() {
               borderColor: iconColor,
             },
           ]}
-          onPress={() => console.log("Logout pressed")}
+          onPress={() => signOut()}
         >
           <LogOut size={18} color={iconColor} />
           <CustomText>Sair da Conta</CustomText>
