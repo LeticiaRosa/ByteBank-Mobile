@@ -45,9 +45,7 @@ export function Login() {
 
     const result = await signIn(email, password);
 
-    if (result.success) {
-      Alert.alert("Sucesso", "Login realizado com sucesso!");
-    } else {
+    if (!result.success) {
       Alert.alert("Erro", result.error?.message || "Erro ao fazer login");
     }
   };
