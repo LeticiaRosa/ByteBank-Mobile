@@ -7,7 +7,7 @@ import { getTheme } from "../../../../styles/theme";
 import { ReactNode } from "react";
 
 interface AccountProps {
-  title: string;
+  title?: string;
   amount: number;
   text?: string;
   isLoadingAccounts: boolean;
@@ -79,32 +79,32 @@ export function AccountInfos({
     <View
       style={{
         backgroundColor: cardBackgroundColor,
-        borderColor: cardForegroundColor,
+        borderColor: theme.border,
       }}
-      className="rounded-lg shadow-sm border p-4 w-full border-gray-12 "
+      className="rounded-lg shadow-sm border p-4 w-full border-gray-1 "
     >
       <View className="flex flex-row justify-between items-start">
-        <View className="flex flex-row items-center gap-2 py-2">
+        <View className="flex flex-row items-center pl-2 gap-2">
           {icon && (
             <View
               style={{
                 backgroundColor: cardForegroundColor,
               }}
-              className="mx-2 w-12 h-12 items-center justify-center rounded-full"
+              className=" w-12 h-12 items-center justify-center rounded-full"
             >
               {icon}
             </View>
           )}
-          <View className="flex flex-col">
-            <CustomText className="font-semibold text-card-foreground bg-red mb-2">
+          <View className="flex flex-col px-2">
+            <CustomText className="font-semibold text-card-foreground bg-red mb-2 text-md">
               {title}
             </CustomText>
             <CustomText
-              className={` text-xl font-bold ${getAmountColorClass()}`}
+              className={`text-2xl font-bold ${getAmountColorClass()}`}
             >
               {isBalanceVisible ? formatValue(amount) : "••••••"}
             </CustomText>
-          </View>{" "}
+          </View>
         </View>
         {showeye && (
           <View className="flex justify-end">

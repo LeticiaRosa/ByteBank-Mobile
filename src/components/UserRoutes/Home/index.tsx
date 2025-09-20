@@ -1,9 +1,12 @@
-import { View } from "react-native";
+import { View, ScrollView } from "react-native";
 import { styles } from "./styles";
 import { AccountInfos } from "./components/AccountInfos";
+import { BalanceChart } from "./components/BalanceChart";
+import { ExpensesPieChart } from "./components/ExpensesPieChart";
 import { Wallet, TrendingDown, TrendingUp } from "lucide-react-native";
 import { useTheme } from "../../../hooks/useTheme";
 import { getTheme, colors } from "../../../styles/theme";
+import { MonthlyRevenueChart } from "./components/MonthlyRevenueChart";
 
 export function Home() {
   const { isDark } = useTheme();
@@ -11,10 +14,17 @@ export function Home() {
   const iconColor = theme.primary;
   const successColor = colors.charts.main.green; // Verde do sistema de charts
   const destructiveColor = theme.destructive; // Vermelho do tema
-
+  const backgroundColor = theme.background;
   return (
-    <>
-      <View style={styles.container} className="bg-gray-1 dark:bg-gray-12">
+    <View
+      style={[styles.container, { backgroundColor }]}
+      className="flex-1 w-full h-full"
+    >
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      >
         <View style={styles.cardsContainer}>
           <AccountInfos
             title="Saldo Disponível"
@@ -42,8 +52,16 @@ export function Home() {
             showeye={false}
             icon={<TrendingUp size={24} color={successColor} />}
           />
+
+          {/* Gráfico de evolução do saldo */}
+          <BalanceChart />
+
+          {/* Gráfico de gastos por categoria */}
+          <ExpensesPieChart />
+
+          <MonthlyRevenueChart />
         </View>
-      </View>
-    </>
+      </ScrollView>
+    </View>
   );
 }

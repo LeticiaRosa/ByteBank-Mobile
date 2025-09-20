@@ -63,7 +63,7 @@ export const colors = {
     // Gray scale - Light mode
     gray: {
       1: "#fcfcfd",
-      2: "#f8f9fb",
+      2: "#f8f9f9",
       3: "#f0f0f3",
       4: "#e7e8ec",
       5: "#e0e1e6",
@@ -97,7 +97,7 @@ export const colors = {
     // Gray scale - Dark mode (convertido de OKLCH para HEX)
     gray: {
       1: "#141419",
-      2: "#18181f",
+      2: "#181a1a",
       3: "#1e1e26",
       4: "#22222c",
       5: "#272732",
@@ -171,13 +171,13 @@ export const colors = {
 
 export const lightTheme = {
   // Primárias
-  background: colors.light.gray[1],
+  background: colors.light.gray[2],
   foreground: colors.light.gray[12],
   primary: colors.light.blue[9],
   primaryForeground: colors.light.blue.contrast,
 
   // Superfícies
-  card: colors.light.gray[3],
+  card: colors.light.gray[1],
   cardForeground: colors.light.gray[5],
   muted: colors.light.gray[3],
   mutedForeground: colors.light.gray[11],
@@ -216,7 +216,7 @@ export const darkTheme = {
   primaryForeground: colors.dark.blue[1],
 
   // Superfícies
-  card: colors.dark.gray[6],
+  card: colors.dark.gray[2],
   cardForeground: colors.dark.gray[8],
   muted: colors.dark.gray[3],
   mutedForeground: colors.dark.gray[11],
