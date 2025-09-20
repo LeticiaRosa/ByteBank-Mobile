@@ -24,14 +24,8 @@ export function MonthlyRevenueChart() {
         ],
       }
     : {
-        // Dados padrão caso não haja dados
         labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
-        datasets: [
-          {
-            data: [8000, 12000, 9500, 15000, 11000, 13500],
-            color: (opacity = 1) => theme.primary,
-          },
-        ],
+        datasets: [],
       };
 
   const chartConfig = {

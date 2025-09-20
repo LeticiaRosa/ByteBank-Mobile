@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AuthResponse, Session } from "@supabase/supabase-js";
 import { AuthError, supabase, User } from "../lib/supabase";
@@ -139,6 +139,7 @@ const bankAccountService = new BankAccountService();
 
 export function useAuth() {
   const queryClient = useQueryClient();
+  const [initializing, setInitializing] = useState(true);
 
   // Query para obter o usuário atual
   const {
@@ -150,7 +151,34 @@ export function useAuth() {
     queryFn: () => authService.getUser(),
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: false,
+    enabled: !initializing, // Só executa após inicialização
   });
+
+  // Inicializar sessão ao carregar o hook
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        // Verificar se existe uma sessão ativa
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error("Erro ao verificar sessão:", error);
+        } else if (session?.user) {
+          // Se há uma sessão válida, definir o usuário no cache
+          queryClient.setQueryData(AUTH_KEYS.user, session.user as User);
+        }
+      } catch (error) {
+        console.error("Erro na inicialização da auth:", error);
+      } finally {
+        setInitializing(false);
+      }
+    };
+
+    initializeAuth();
+  }, [queryClient]);
 
   // Mutations para autenticação
   const signInMutation = useMutation({
@@ -351,6 +379,7 @@ export function useAuth() {
   return {
     user,
     loading:
+      initializing ||
       userLoading ||
       signInMutation.isPending ||
       signUpMutation.isPending ||

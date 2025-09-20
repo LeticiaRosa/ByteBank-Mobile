@@ -52,13 +52,8 @@ export function Home() {
             showeye={false}
             icon={<TrendingUp size={24} color={successColor} />}
           />
-
-          {/* Gráfico de evolução do saldo */}
-          <BalanceChart />
-
-          {/* Gráfico de gastos por categoria */}
           <ExpensesPieChart />
-
+          <BalanceChart />
           <MonthlyRevenueChart />
         </View>
       </ScrollView>

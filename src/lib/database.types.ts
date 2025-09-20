@@ -278,6 +278,16 @@ export type Database = {
         };
         Relationships: [];
       };
+      monthly_financial_summary: {
+        Row: {
+          month_label: string | null;
+          month_number: number | null;
+          receitas: number | null;
+          gastos: number | null;
+          saldo: number | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       generate_account_number: {

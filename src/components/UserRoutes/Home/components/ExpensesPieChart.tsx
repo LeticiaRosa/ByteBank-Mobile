@@ -13,21 +13,47 @@ export function ExpensesPieChart() {
   const chartColors = getChartPieColors(isDark);
   const { data: expensesData, isLoading, error } = useExpensesByCategory();
 
-  // Preparar dados para o gráfico de pizza
+  // Preparar dados para o gráfico de pizza (5 maiores categorias + outras)
   const chartData = expensesData?.length
-    ? expensesData.map((expense, index) => {
-        const valueInReais = expense.value / 100; // Converter centavos para reais
-        return {
-          name: `${expense.label}\nR$ ${valueInReais.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`,
-          population: valueInReais,
-          color: chartColors[index % chartColors.length],
-          legendFontColor: theme.foreground,
-          legendFontSize: 12,
-        };
-      })
+    ? (() => {
+        // Ordenar por valor (maior para menor)
+        const sortedExpenses = [...expensesData].sort(
+          (a, b) => b.value - a.value
+        );
+
+        // Pegar as 5 maiores categorias
+        const top5Categories = sortedExpenses.slice(0, 5);
+
+        // Calcular o valor das categorias restantes
+        const otherCategoriesValue = sortedExpenses
+          .slice(5)
+          .reduce((sum, expense) => sum + expense.value, 0);
+
+        // Criar dados do gráfico
+        const chartItems = top5Categories.map((expense, index) => {
+          const valueInReais = expense.value / 100;
+          return {
+            name: `${expense.label}`,
+            population: valueInReais,
+            color: chartColors[index % chartColors.length],
+            legendFontColor: theme.foreground,
+            legendFontSize: 12,
+          };
+        });
+
+        // Adicionar categoria "Outras" se houver categorias restantes
+        if (otherCategoriesValue > 0) {
+          chartItems.push({
+            name: "Outras",
+            population: otherCategoriesValue / 100,
+            color: chartColors[5 % chartColors.length],
+            legendFontColor: theme.foreground,
+            legendFontSize: 12,
+          });
+        }
+
+        return chartItems;
+      })()
     : [];
 
   const chartConfig = {

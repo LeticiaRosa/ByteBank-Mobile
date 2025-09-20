@@ -11,7 +11,7 @@ export function BalanceChart() {
   const { isDark } = useTheme();
   const theme = getTheme(isDark);
   const { data: monthlyData, isLoading, error } = useMonthlyBalanceData();
-
+  console.log(monthlyData);
   // Preparar dados para o gráfico de linha
   const chartData = monthlyData?.length
     ? {
@@ -25,15 +25,8 @@ export function BalanceChart() {
         ],
       }
     : {
-        // Dados padrão caso não haja dados
-        labels: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
-        datasets: [
-          {
-            data: [10000, 12000, 11500, 13000, 12500, 14000, 12345.67],
-            color: (opacity = 1) => theme.primary,
-            strokeWidth: 3,
-          },
-        ],
+        labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
+        datasets: [],
       };
 
   const chartConfig = {

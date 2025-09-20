@@ -30,32 +30,26 @@ export function useMonthlyBalanceData() {
   return useQuery({
     queryKey: ["monthly-financial-summary"],
     queryFn: async (): Promise<MonthlyBalanceData[]> => {
-      // Como não há uma view específica, vamos buscar dados das transações agrupadas por mês
-      // Retornando dados simulados por enquanto até que as views sejam criadas no banco
-      const mockData: MonthlyBalanceData[] = [
-        {
-          month_label: "Jan 2025",
-          month_number: 1,
-          receitas: 5000,
-          gastos: 3000,
-          saldo: 2000,
-        },
-        {
-          month_label: "Fev 2025",
-          month_number: 2,
-          receitas: 5500,
-          gastos: 3200,
-          saldo: 2300,
-        },
-        {
-          month_label: "Mar 2025",
-          month_number: 3,
-          receitas: 6000,
-          gastos: 3500,
-          saldo: 2500,
-        },
-      ];
-      return mockData;
+      // Usar diretamente a view monthly_financial_summary que já vem agrupada por mês
+      const { data, error } = await supabase
+        .from("monthly_financial_summary")
+        .select("*")
+        .order("month_number", { ascending: true });
+
+      if (error) {
+        throw new Error(
+          `Erro ao buscar dados financeiros mensais: ${error.message}`
+        );
+      }
+
+      // Converter para o formato esperado, tratando valores null
+      return (data || []).map((item: any) => ({
+        month_label: item.month_label || "Mês",
+        month_number: item.month_number || 0,
+        receitas: item.receitas || 0,
+        gastos: Math.abs(item.gastos || 0), // Garantir valor positivo
+        saldo: item.saldo || 0,
+      }));
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
     refetchInterval: 5 * 60 * 1000, // Refetch a cada 5 minutos
@@ -95,8 +89,8 @@ export function useExpensesByCategory() {
           label: category.charAt(0).toUpperCase() + category.slice(1),
           value,
         }))
-        .sort((a, b) => b.value - a.value) // Ordenar por valor decrescente
-        .slice(0, 5); // Pegar apenas as 5 primeiras (maiores gastos)
+        .sort((a, b) => b.value - a.value); // Ordenar por valor decrescente
+      // .slice(0, 5); // Pegar apenas as 5 primeiras (maiores gastos)
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
     refetchInterval: 5 * 60 * 1000, // Refetch a cada 5 minutos
