@@ -11,7 +11,6 @@ export function BalanceChart() {
   const { isDark } = useTheme();
   const theme = getTheme(isDark);
   const { data: monthlyData, isLoading, error } = useMonthlyBalanceData();
-  console.log(monthlyData);
   // Preparar dados para o gráfico de linha
   const chartData = monthlyData?.length
     ? {
@@ -33,7 +32,7 @@ export function BalanceChart() {
     backgroundColor: theme.card,
     backgroundGradientFrom: theme.card,
     backgroundGradientTo: theme.card,
-    decimalPlaces: 0, // Casas decimais
+    decimalPlaces: 2, // Casas decimais
     color: (opacity = 1) => theme.primary,
     labelColor: (opacity = 1) => theme.foreground,
     style: {

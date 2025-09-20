@@ -30,7 +30,7 @@ export function useMonthlyBalanceData() {
   return useQuery({
     queryKey: ["monthly-financial-summary"],
     queryFn: async (): Promise<MonthlyBalanceData[]> => {
-      // Usar diretamente a view monthly_financial_summary que já vem agrupada por mês
+      // Usar diretamente a view monthly_financial_summary que já filtra por usuário
       const { data, error } = await supabase
         .from("monthly_financial_summary")
         .select("*")
@@ -42,13 +42,13 @@ export function useMonthlyBalanceData() {
         );
       }
 
-      // Converter para o formato esperado, tratando valores null
+      // Converter para o formato esperado, tratando valores null e convertendo centavos para reais
       return (data || []).map((item: any) => ({
         month_label: item.month_label || "Mês",
         month_number: item.month_number || 0,
-        receitas: item.receitas || 0,
-        gastos: Math.abs(item.gastos || 0), // Garantir valor positivo
-        saldo: item.saldo || 0,
+        receitas: (item.receitas || 0) / 100, // Converter de centavos para reais
+        gastos: Math.abs((item.gastos || 0) / 100), // Converter e garantir valor positivo
+        saldo: (item.saldo || 0) / 100, // Converter de centavos para reais
       }));
     },
     staleTime: 5 * 60 * 1000, // 5 minutos

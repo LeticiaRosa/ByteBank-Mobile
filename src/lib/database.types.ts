@@ -7,7 +7,7 @@ export type Json =
   | Json[];
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)";
@@ -172,10 +172,24 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "transactions_from_account_id_fkey";
+            columns: ["from_account_id"];
+            isOneToOne: false;
+            referencedRelation: "user_accounts_summary";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "transactions_to_account_id_fkey";
             columns: ["to_account_id"];
             isOneToOne: false;
             referencedRelation: "bank_accounts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transactions_to_account_id_fkey";
+            columns: ["to_account_id"];
+            isOneToOne: false;
+            referencedRelation: "user_accounts_summary";
             referencedColumns: ["id"];
           },
           {
@@ -236,6 +250,33 @@ export type Database = {
       };
     };
     Views: {
+      expenses_by_category: {
+        Row: {
+          category: Database["public"]["Enums"]["transaction_category"] | null;
+          label: string | null;
+          value: number | null;
+        };
+        Relationships: [];
+      };
+      monthly_financial_summary: {
+        Row: {
+          gastos: number | null;
+          month_label: string | null;
+          month_number: number | null;
+          receitas: number | null;
+          saldo: number | null;
+          user_id: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "transactions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "user_account_summary";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       recent_transactions: {
         Row: {
           amount: number | null;
@@ -278,18 +319,47 @@ export type Database = {
         };
         Relationships: [];
       };
-      monthly_financial_summary: {
+      user_accounts_summary: {
         Row: {
-          month_label: string | null;
-          month_number: number | null;
-          receitas: number | null;
-          gastos: number | null;
-          saldo: number | null;
+          account_number: string | null;
+          account_type: string | null;
+          balance: number | null;
+          id: string | null;
+          is_active: boolean | null;
+          user_id: string | null;
         };
-        Relationships: [];
+        Insert: {
+          account_number?: string | null;
+          account_type?: string | null;
+          balance?: number | null;
+          id?: string | null;
+          is_active?: boolean | null;
+          user_id?: string | null;
+        };
+        Update: {
+          account_number?: string | null;
+          account_type?: string | null;
+          balance?: number | null;
+          id?: string | null;
+          is_active?: boolean | null;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "bank_accounts_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "user_account_summary";
+            referencedColumns: ["id"];
+          }
+        ];
       };
     };
     Functions: {
+      decrement_balance: {
+        Args: { account_id: string; amount_cents: number };
+        Returns: string;
+      };
       generate_account_number: {
         Args: Record<PropertyKey, never>;
         Returns: string;
@@ -301,6 +371,22 @@ export type Database = {
       get_account_balance: {
         Args: { account_uuid: string };
         Returns: number;
+      };
+      increment_balance: {
+        Args: { account_id: string; amount_cents: number };
+        Returns: string;
+      };
+      process_transaction_simple: {
+        Args: { transaction_id: string };
+        Returns: string;
+      };
+      recalculate_account_balance: {
+        Args: { account_id: string };
+        Returns: undefined;
+      };
+      recalculate_all_account_balances: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
       };
       transfer_money: {
         Args: {
@@ -461,6 +547,22 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      transaction_category: [
+        "alimentacao",
+        "transporte",
+        "saude",
+        "educacao",
+        "entretenimento",
+        "compras",
+        "casa",
+        "trabalho",
+        "investimentos",
+        "viagem",
+        "outros",
+      ],
+      transaction_status: ["pending", "completed", "failed", "cancelled"],
+      transaction_type: ["deposit", "withdrawal", "transfer", "payment", "fee"],
+    },
   },
 } as const;

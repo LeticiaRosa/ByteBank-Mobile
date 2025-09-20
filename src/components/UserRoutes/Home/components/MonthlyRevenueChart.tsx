@@ -11,14 +11,13 @@ export function MonthlyRevenueChart() {
   const { isDark } = useTheme();
   const theme = getTheme(isDark);
   const { data: monthlyData, isLoading, error } = useMonthlyBalanceData();
-
   // Preparar dados para o gráfico de barras
   const chartData = monthlyData?.length
     ? {
         labels: monthlyData.map((item) => item.month_label.split(" ")[0]), // Apenas o mês (Jan, Fev, etc.)
         datasets: [
           {
-            data: monthlyData.map((item) => item.receitas),
+            data: monthlyData.map((item) => Number(item.receitas)),
             color: (opacity = 1) => theme.primary,
           },
         ],
@@ -76,12 +75,13 @@ export function MonthlyRevenueChart() {
             height={220}
             chartConfig={chartConfig}
             yAxisLabel="R$ "
-            yAxisSuffix="k"
+            yAxisSuffix=""
             style={{
               borderRadius: 8,
             }}
             verticalLabelRotation={0}
             showValuesOnTopOfBars={true}
+            fromZero={true}
           />
         </ScrollView>
       )}
