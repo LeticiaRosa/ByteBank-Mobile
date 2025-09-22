@@ -28,6 +28,7 @@ export function AccountInfos({
   icon,
 }: AccountProps) {
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
+
   const { isDark } = useTheme();
   const theme = getTheme(isDark);
 

@@ -7,14 +7,17 @@ import { Wallet, TrendingDown, TrendingUp } from "lucide-react-native";
 import { useTheme } from "../../../hooks/useTheme";
 import { getTheme, colors } from "../../../styles/theme";
 import { MonthlyRevenueChart } from "./components/MonthlyRevenueChart";
+import { usePrimaryBankAccount } from "../../../hooks/useBankAccounts";
 
 export function Home() {
   const { isDark } = useTheme();
+  const { data: account } = usePrimaryBankAccount();
   const theme = getTheme(isDark);
   const iconColor = theme.primary;
   const successColor = colors.charts.main.green; // Verde do sistema de charts
   const destructiveColor = theme.destructive; // Vermelho do tema
   const backgroundColor = theme.background;
+
   return (
     <View
       style={[styles.container, { backgroundColor }]}
@@ -28,8 +31,8 @@ export function Home() {
         <View style={styles.cardsContainer}>
           <AccountInfos
             title="Saldo Disponível"
-            amount={12345.67}
-            isLoadingAccounts={false}
+            amount={account?.balance || 0}
+            isLoadingAccounts={!account}
             formatType="currency"
             icon={<Wallet size={24} color={iconColor} />}
           />
