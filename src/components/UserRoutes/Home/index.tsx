@@ -11,7 +11,7 @@ import { usePrimaryBankAccount } from "../../../hooks/useBankAccounts";
 
 export function Home() {
   const { isDark } = useTheme();
-  const { data: account } = usePrimaryBankAccount();
+  const { data: accounts } = usePrimaryBankAccount();
   const theme = getTheme(isDark);
   const iconColor = theme.primary;
   const successColor = colors.charts.main.green; // Verde do sistema de charts
@@ -31,8 +31,8 @@ export function Home() {
         <View style={styles.cardsContainer}>
           <AccountInfos
             title="Saldo Disponível"
-            amount={account?.balance || 0}
-            isLoadingAccounts={!account}
+            amount={accounts?.balance || 0}
+            isLoadingAccounts={!accounts}
             formatType="currency"
             icon={<Wallet size={24} color={iconColor} />}
           />

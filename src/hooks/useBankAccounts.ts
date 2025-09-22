@@ -61,7 +61,7 @@ export class BankAccountService {
    */
   public async getPrimaryAccount(): Promise<BankAccount | null> {
     const accounts = await this.getBankAccounts();
-    return accounts.length > 0 ? accounts[0] : null;
+    return accounts && accounts.length > 0 ? accounts[0] : null;
   }
 
   /**
