@@ -12,7 +12,7 @@ import { useMonthlyFinancialSummary } from "../../../hooks/useMonthlyFinancialSu
 
 export function Home() {
   const { isDark } = useTheme();
-  const { data: accounts } = usePrimaryBankAccount();
+  const { data: accounts, isLoading } = usePrimaryBankAccount();
   const {
     monthlyRevenue,
     monthlyExpenses,
@@ -25,6 +25,11 @@ export function Home() {
   const successColor = colors.charts.main.green; // Verde do sistema de charts
   const destructiveColor = theme.destructive; // Vermelho do tema
   const backgroundColor = theme.background;
+
+  if (isLoading || isLoadingFinancialSummary) {
+    return null;
+  }
+
   return (
     <View
       style={[styles.container, { backgroundColor }]}
