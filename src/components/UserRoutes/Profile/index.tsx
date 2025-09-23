@@ -18,7 +18,7 @@ import { CustomText } from "../../ui/Text";
 
 export function Profile() {
   const { isDark, toggleTheme } = useTheme();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   // Cores baseadas no theme.ts simplificado
   const theme = getTheme(isDark);
   const iconColor = theme.primary;
@@ -66,9 +66,9 @@ export function Profile() {
             <User size={40} color={iconColor} />
           </View>
           <CustomText className="text-gray-12 text-lg font-bold  dark:text-dark-card-foreground">
-            João da Silva
+            {user?.user_metadata?.full_name || "-"}
           </CustomText>
-          <CustomText>joao.silva@example.com</CustomText>
+          <CustomText>{user?.email}</CustomText>
         </View>
 
         {/* Configurações */}
