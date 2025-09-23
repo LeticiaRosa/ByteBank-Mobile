@@ -12,6 +12,11 @@ export function BalanceChart() {
   const theme = getTheme(isDark);
   const { data: monthlyData, isLoading, error } = useMonthlyBalanceData();
   // Preparar dados para o gráfico de linha
+
+  if (isLoading) {
+    return null;
+  }
+
   const chartData = monthlyData?.length
     ? {
         labels: monthlyData.map((item) => item.month_label.split(" ")[0]), // Apenas o mês (Jan, Fev, etc.)

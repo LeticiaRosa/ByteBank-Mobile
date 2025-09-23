@@ -13,6 +13,10 @@ export function ExpensesPieChart() {
   const chartColors = getChartPieColors(isDark);
   const { data: expensesData, isLoading, error } = useExpensesByCategory();
 
+  if (isLoading) {
+    return null;
+  }
+
   // Preparar dados para o gráfico de pizza (5 maiores categorias + outras)
   const chartData = expensesData?.length
     ? (() => {

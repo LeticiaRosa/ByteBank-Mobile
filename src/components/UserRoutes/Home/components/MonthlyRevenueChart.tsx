@@ -11,6 +11,11 @@ export function MonthlyRevenueChart() {
   const { isDark } = useTheme();
   const theme = getTheme(isDark);
   const { data: monthlyData, isLoading, error } = useMonthlyBalanceData();
+
+  if (isLoading) {
+    return null;
+  }
+
   // Preparar dados para o gráfico de barras
   const chartData = monthlyData?.length
     ? {
