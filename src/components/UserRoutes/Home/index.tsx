@@ -8,16 +8,23 @@ import { useTheme } from "../../../hooks/useTheme";
 import { getTheme, colors } from "../../../styles/theme";
 import { MonthlyRevenueChart } from "./components/MonthlyRevenueChart";
 import { usePrimaryBankAccount } from "../../../hooks/useBankAccounts";
+import { useMonthlyFinancialSummary } from "../../../hooks/useMonthlyFinancialSummary";
 
 export function Home() {
   const { isDark } = useTheme();
   const { data: accounts } = usePrimaryBankAccount();
+  const {
+    monthlyRevenue,
+    monthlyExpenses,
+    revenueGrowth,
+    expensesGrowth,
+    isLoading: isLoadingFinancialSummary,
+  } = useMonthlyFinancialSummary();
   const theme = getTheme(isDark);
   const iconColor = theme.primary;
   const successColor = colors.charts.main.green; // Verde do sistema de charts
   const destructiveColor = theme.destructive; // Vermelho do tema
   const backgroundColor = theme.background;
-
   return (
     <View
       style={[styles.container, { backgroundColor }]}
@@ -32,24 +39,26 @@ export function Home() {
           <AccountInfos
             title="Saldo Disponível"
             amount={accounts?.balance || 0}
-            isLoadingAccounts={!accounts}
+            isLoadingAccounts={!accounts?.id}
             formatType="currency"
             icon={<Wallet size={24} color={iconColor} />}
           />
 
           <AccountInfos
-            title="Total de Despesas"
-            amount={5678.9}
-            isLoadingAccounts={false}
+            title="Receitas do Mês"
+            text={`${revenueGrowth} vs mês anterior`}
+            isLoadingAccounts={isLoadingFinancialSummary}
+            amount={monthlyRevenue}
+            showeye={false}
             colorType="destructive"
             formatType="currency"
-            showeye={false}
             icon={<TrendingDown size={24} color={destructiveColor} />}
           />
           <AccountInfos
-            title="Total de Receitas"
-            amount={2345.67}
-            isLoadingAccounts={false}
+            title="Gastos do Mês"
+            text={`${expensesGrowth} vs mês anterior`}
+            isLoadingAccounts={isLoadingFinancialSummary}
+            amount={monthlyExpenses}
             colorType="success"
             formatType="currency"
             showeye={false}

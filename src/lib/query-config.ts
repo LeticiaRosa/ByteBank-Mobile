@@ -8,6 +8,7 @@ export const QUERY_KEYS = {
       [...QUERY_KEYS.transactions.lists(), { filters }] as const,
     details: () => [...QUERY_KEYS.transactions.all, "detail"] as const,
     detail: (id: string) => [...QUERY_KEYS.transactions.details(), id] as const,
+    filtered: () => [...QUERY_KEYS.transactions.all, "filtered"] as const,
   },
 
   // Contas bancárias
