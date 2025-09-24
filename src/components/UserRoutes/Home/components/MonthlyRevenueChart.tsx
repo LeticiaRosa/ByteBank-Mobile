@@ -10,27 +10,41 @@ const screenWidth = Dimensions.get("window").width;
 export function MonthlyRevenueChart() {
   const { isDark } = useTheme();
   const theme = getTheme(isDark);
-  const { data: monthlyData, isLoading, error } = useMonthlyBalanceData();
+  const {
+    data: monthlyData,
+    isLoading,
+    error,
+  } = useMonthlyBalanceData() || {
+    data: undefined,
+    isLoading: true,
+    error: null,
+  };
 
-  if (isLoading) {
+  if (isLoading || !monthlyData) {
     return null;
   }
 
   // Preparar dados para o gráfico de barras
-  const chartData = monthlyData?.length
-    ? {
-        labels: monthlyData.map((item) => item.month_label.split(" ")[0]), // Apenas o mês (Jan, Fev, etc.)
-        datasets: [
-          {
-            data: monthlyData.map((item) => Number(item.receitas)),
-            color: (opacity = 1) => theme.primary,
-          },
-        ],
-      }
-    : {
-        labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
-        datasets: [],
-      };
+  const chartData =
+    monthlyData && monthlyData.length
+      ? {
+          labels: monthlyData.map((item) => item.month_label.split(" ")[0]), // Apenas o mês (Jan, Fev, etc.)
+          datasets: [
+            {
+              data: monthlyData.map((item) => Number(item.receitas)),
+              color: (opacity = 1) => theme.primary,
+            },
+          ],
+        }
+      : {
+          labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
+          datasets: [
+            {
+              data: [0, 0, 0, 0, 0, 0],
+              color: (opacity = 1) => theme.primary,
+            },
+          ],
+        };
 
   const chartConfig = {
     backgroundColor: theme.card,
@@ -71,6 +85,10 @@ export function MonthlyRevenueChart() {
       ) : error ? (
         <CustomText className="text-red-500 text-center py-8">
           Erro ao carregar dados
+        </CustomText>
+      ) : !monthlyData || monthlyData.length === 0 ? (
+        <CustomText className="text-muted-foreground text-center py-8">
+          Nenhuma receita encontrada
         </CustomText>
       ) : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>

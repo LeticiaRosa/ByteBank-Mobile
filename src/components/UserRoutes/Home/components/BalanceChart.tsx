@@ -10,28 +10,43 @@ const screenWidth = Dimensions.get("window").width;
 export function BalanceChart() {
   const { isDark } = useTheme();
   const theme = getTheme(isDark);
-  const { data: monthlyData, isLoading, error } = useMonthlyBalanceData();
+  const {
+    data: monthlyData,
+    isLoading,
+    error,
+  } = useMonthlyBalanceData() || {
+    data: undefined,
+    isLoading: true,
+    error: null,
+  };
   // Preparar dados para o gráfico de linha
 
-  if (isLoading) {
+  if (isLoading || !monthlyData) {
     return null;
   }
 
-  const chartData = monthlyData?.length
-    ? {
-        labels: monthlyData.map((item) => item.month_label.split(" ")[0]), // Apenas o mês (Jan, Fev, etc.)
-        datasets: [
-          {
-            data: monthlyData.map((item) => item.saldo),
-            color: (opacity = 1) => theme.primary, // Cor da linha
-            strokeWidth: 3, // Espessura da linha
-          },
-        ],
-      }
-    : {
-        labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
-        datasets: [],
-      };
+  const chartData =
+    monthlyData && monthlyData.length
+      ? {
+          labels: monthlyData.map((item) => item.month_label.split(" ")[0]), // Apenas o mês (Jan, Fev, etc.)
+          datasets: [
+            {
+              data: monthlyData.map((item) => item.saldo),
+              color: (opacity = 1) => theme.primary, // Cor da linha
+              strokeWidth: 3, // Espessura da linha
+            },
+          ],
+        }
+      : {
+          labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
+          datasets: [
+            {
+              data: [0, 0, 0, 0, 0, 0],
+              color: (opacity = 1) => theme.primary,
+              strokeWidth: 3,
+            },
+          ],
+        };
 
   const chartConfig = {
     backgroundColor: theme.card,
@@ -78,6 +93,10 @@ export function BalanceChart() {
       ) : error ? (
         <CustomText className="text-red-500 text-center py-8">
           Erro ao carregar dados
+        </CustomText>
+      ) : !monthlyData || monthlyData.length === 0 ? (
+        <CustomText className="text-muted-foreground text-center py-8">
+          Nenhum dado disponível
         </CustomText>
       ) : (
         <LineChart

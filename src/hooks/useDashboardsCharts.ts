@@ -30,26 +30,32 @@ export function useMonthlyBalanceData() {
   return useQuery({
     queryKey: ["monthly-financial-summary"],
     queryFn: async (): Promise<MonthlyBalanceData[]> => {
-      // Usar diretamente a view monthly_financial_summary que já filtra por usuário
-      const { data, error } = await supabase
-        .from("monthly_financial_summary")
-        .select("*")
-        .order("month_number", { ascending: true });
+      try {
+        // Usar diretamente a view monthly_financial_summary que já filtra por usuário
+        const { data, error } = await supabase
+          .from("monthly_financial_summary")
+          .select("*")
+          .order("month_number", { ascending: true });
 
-      if (error) {
-        throw new Error(
-          `Erro ao buscar dados financeiros mensais: ${error.message}`
-        );
+        if (error) {
+          console.error(
+            `Erro ao buscar dados financeiros mensais: ${error.message}`
+          );
+          return []; // Retornar array vazio em vez de lançar erro
+        }
+
+        // Converter para o formato esperado, tratando valores null e convertendo centavos para reais
+        return (data || []).map((item: any) => ({
+          month_label: item.month_label || "Mês",
+          month_number: item.month_number || 0,
+          receitas: (item.receitas || 0) / 100, // Converter de centavos para reais
+          gastos: Math.abs((item.gastos || 0) / 100), // Converter e garantir valor positivo
+          saldo: (item.saldo || 0) / 100, // Converter de centavos para reais
+        }));
+      } catch (error) {
+        console.error("Erro na consulta de dados financeiros mensais:", error);
+        return []; // Retornar um array vazio em caso de erro
       }
-
-      // Converter para o formato esperado, tratando valores null e convertendo centavos para reais
-      return (data || []).map((item: any) => ({
-        month_label: item.month_label || "Mês",
-        month_number: item.month_number || 0,
-        receitas: (item.receitas || 0) / 100, // Converter de centavos para reais
-        gastos: Math.abs((item.gastos || 0) / 100), // Converter e garantir valor positivo
-        saldo: (item.saldo || 0) / 100, // Converter de centavos para reais
-      }));
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
     refetchInterval: 5 * 60 * 1000, // Refetch a cada 5 minutos
@@ -61,36 +67,42 @@ export function useExpensesByCategory() {
   return useQuery({
     queryKey: ["expenses-by-category"],
     queryFn: async (): Promise<ExpensesCategoryData[]> => {
-      // Buscar transações do tipo 'withdrawal', 'payment' e 'fee' para calcular gastos por categoria
-      const { data: transactions, error } = await supabase
-        .from("transactions")
-        .select("amount, category, transaction_type")
-        .in("transaction_type", ["withdrawal", "payment", "fee"])
-        .eq("status", "completed");
+      try {
+        // Buscar transações do tipo 'withdrawal', 'payment' e 'fee' para calcular gastos por categoria
+        const { data: transactions, error } = await supabase
+          .from("transactions")
+          .select("amount, category, transaction_type")
+          .in("transaction_type", ["withdrawal", "payment", "fee"])
+          .eq("status", "completed");
 
-      if (error) {
-        throw new Error(
-          `Erro ao buscar gastos por categoria: ${error.message}`
-        );
+        if (error) {
+          console.error(
+            `Erro ao buscar gastos por categoria: ${error.message}`
+          );
+          return []; // Retornar array vazio em vez de lançar erro
+        }
+
+        // Agregar dados por categoria
+        const categoryTotals: Record<string, number> = {};
+        transactions?.forEach((transaction) => {
+          const category = transaction.category || "outros";
+          const amount = Math.abs(transaction.amount || 0);
+          categoryTotals[category] = (categoryTotals[category] || 0) + amount;
+        });
+
+        // Converter para o formato esperado e ordenar por valor (maior para menor)
+        return Object.entries(categoryTotals)
+          .map(([category, value]) => ({
+            category,
+            label: category.charAt(0).toUpperCase() + category.slice(1),
+            value,
+          }))
+          .sort((a, b) => b.value - a.value); // Ordenar por valor decrescente
+        // .slice(0, 5); // Pegar apenas as 5 primeiras (maiores gastos)
+      } catch (error) {
+        console.error("Erro na consulta de gastos por categoria:", error);
+        return []; // Retornar um array vazio em caso de erro
       }
-
-      // Agregar dados por categoria
-      const categoryTotals: Record<string, number> = {};
-      transactions?.forEach((transaction) => {
-        const category = transaction.category || "outros";
-        const amount = Math.abs(transaction.amount || 0);
-        categoryTotals[category] = (categoryTotals[category] || 0) + amount;
-      });
-
-      // Converter para o formato esperado e ordenar por valor (maior para menor)
-      return Object.entries(categoryTotals)
-        .map(([category, value]) => ({
-          category,
-          label: category.charAt(0).toUpperCase() + category.slice(1),
-          value,
-        }))
-        .sort((a, b) => b.value - a.value); // Ordenar por valor decrescente
-      // .slice(0, 5); // Pegar apenas as 5 primeiras (maiores gastos)
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
     refetchInterval: 5 * 60 * 1000, // Refetch a cada 5 minutos

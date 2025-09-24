@@ -44,8 +44,9 @@ export function Home() {
           <AccountInfos
             title="Saldo Disponível"
             amount={accounts?.balance || 0}
-            isLoadingAccounts={!accounts?.id}
+            isLoadingAccounts={isLoading}
             formatType="currency"
+            colorType="primary"
             icon={<Wallet size={24} color={iconColor} />}
           />
 
