@@ -593,6 +593,7 @@ export function NewTransactionForm({
               placeholder="R$ 0,00"
               placeholderTextColor={colors.placeholder}
               keyboardType="numeric"
+              maxLength={13} // Limitar tamanho para evitar entradas muito longas
             />
             {errors.amount && (
               <Text style={styles.errorText}>{errors.amount}</Text>
