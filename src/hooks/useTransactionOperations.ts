@@ -14,6 +14,10 @@ export function useTransactionsList() {
     queryKey: QUERY_KEYS.transactions.list(),
     queryFn: () => transactionService.getTransactions(),
     ...QUERY_CONFIG.transactions,
+    refetchInterval: 60000, // 1 minuto
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 }
 
