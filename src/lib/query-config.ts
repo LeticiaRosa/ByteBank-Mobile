@@ -29,6 +29,8 @@ export const QUERY_KEYS = {
 } as const;
 
 // Configurações padrão para queries
+// Nota: Essas configurações têm prioridade sobre as configurações globais definidas em App.tsx
+// quando são passadas explicitamente para os hooks useQuery com o operador spread {...QUERY_CONFIG.categoria}
 export const QUERY_CONFIG = {
   // Configurações para transações
   transactions: {

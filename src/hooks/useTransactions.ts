@@ -182,5 +182,10 @@ export function useTransaction(id: string) {
   return useTransactionDetail(id);
 }
 
+// Hook específico para uma transação - agora usa o hook especializado
+export function useAllTransactions() {
+  return useTransactions();
+}
+
 // Exports de tipos para compatibilidade
 export type { Transaction, CreateTransactionData, BankAccount };

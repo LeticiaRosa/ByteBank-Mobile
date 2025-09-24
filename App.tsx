@@ -7,7 +7,7 @@ import { AuthForm } from "./src/components/AuthForm";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 2, // 1 minuto
+      staleTime: 1000 * 15, // 15 segundos (alinhado com o menor staleTime em QUERY_CONFIG)
       gcTime: 1000 * 60 * 30, // 30 minutos de cache (garbage collection time)
       retry: 2,
       refetchOnWindowFocus: true, // Atualiza quando o app volta ao foco
