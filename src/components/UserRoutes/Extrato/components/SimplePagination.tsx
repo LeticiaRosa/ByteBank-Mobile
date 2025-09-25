@@ -58,19 +58,23 @@ export function SimplePagination({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    flex: 1,
     borderTopWidth: 1,
     borderTopColor: "#e5e7eb",
     backgroundColor: "#f9fafb",
-    flexDirection: "row",
+    flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "center",
-    flexWrap: "wrap",
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   paginationText: {
     fontSize: 14,
     color: "#6b7280",
-    paddingBottom: 8,
   },
   buttonsContainer: {
     flexDirection: "row",
@@ -80,7 +84,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   button: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     paddingVertical: 8,
     borderWidth: 1,
     borderColor: "#d1d5db",

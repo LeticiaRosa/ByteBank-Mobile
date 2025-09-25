@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   FlatList,
+  ScrollView,
 } from "react-native";
 import { useTransactions } from "../../../hooks/useTransactions";
 // Importação de tipos
@@ -59,7 +60,7 @@ export function ExtractPage() {
   const filteredTransactions = result?.data
     ? result.data.map((transaction: Transaction) => ({
         ...transaction,
-        amount: transaction.amount / 100, // Convertendo de centavos para reais
+        amount: transaction.amount, // Convertendo de centavos para reais
       }))
     : [];
 
@@ -242,29 +243,22 @@ export function ExtractPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: "#f8f9fa",
-    gap: 16,
+    margin: 8,
   },
 
   headerTitle: {
     fontSize: 24,
     fontWeight: "700",
     color: "#111827",
+    padding: 8,
   },
   headerSubtitle: {
     fontSize: 14,
     color: "#6b7280",
+    padding: 8,
   },
-  statisticsScrollview: {
-    flexGrow: 0,
-    marginBottom: 16,
-  },
-  statisticsContainer: {
-    flexDirection: "row",
-    gap: 12,
-    paddingRight: 16,
-  },
+
   card: {
     backgroundColor: "white",
     borderRadius: 8,

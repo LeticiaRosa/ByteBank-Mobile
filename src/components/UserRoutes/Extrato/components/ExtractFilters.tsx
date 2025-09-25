@@ -103,10 +103,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   expandedFilters: {
+    maxHeight: 300,
     paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: "#e5e7eb",
+  },
+  expandedFiltersContent: {
     gap: 16,
+    paddingBottom: 16,
   },
   formGroup: {
     marginBottom: 12,
@@ -262,10 +266,6 @@ export function ExtractFilters({
     onReset();
   };
 
-  const getToday = () => {
-    return new Date().toISOString().split("T")[0];
-  };
-
   const formatDisplayDate = (dateString: string) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -304,15 +304,6 @@ export function ExtractFilters({
       const formattedDate = currentDate.toISOString().split("T")[0];
       handleFilterChange(fieldName, formattedDate);
     }
-  };
-
-  // Funções auxiliares para selects
-  const getLabelForValue = (
-    value: string,
-    options: Array<{ value: string; label: string }>
-  ) => {
-    const option = options.find((opt) => opt.value === value);
-    return option ? option.label : value;
   };
 
   // Componente para renderizar um selector customizado
@@ -452,7 +443,10 @@ export function ExtractFilters({
 
           {/* Filtros expandidos */}
           {isExpanded && (
-            <View style={styles.expandedFilters}>
+            <ScrollView
+              style={styles.expandedFilters}
+              contentContainerStyle={styles.expandedFiltersContent}
+            >
               {/* Date pickers */}
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Data inicial</Text>
@@ -581,7 +575,7 @@ export function ExtractFilters({
                   onChangeText={(text) => handleFilterChange("maxAmount", text)}
                 />
               </View>
-            </View>
+            </ScrollView>
           )}
         </View>
       </View>
