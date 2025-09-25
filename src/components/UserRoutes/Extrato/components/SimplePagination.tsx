@@ -70,10 +70,13 @@ const styles = StyleSheet.create({
   paginationText: {
     fontSize: 14,
     color: "#6b7280",
+    paddingBottom: 8,
   },
   buttonsContainer: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
+    flex: 1,
     gap: 8,
   },
   button: {

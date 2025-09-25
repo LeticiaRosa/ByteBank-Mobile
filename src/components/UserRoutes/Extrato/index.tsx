@@ -9,12 +9,12 @@ import {
 import { useTransactions } from "../../../hooks/useTransactions";
 // Importação de tipos
 import type { Transaction } from "../../../lib/transactions";
-import { SimplePagination } from "../Home/components/SimplePagination";
 import {
   TransactionItem,
   ExtractFilters,
   type FilterOptions,
 } from "./components";
+import { SimplePagination } from "./components/SimplePagination";
 
 const PAGE_SIZE = 10;
 
@@ -126,7 +126,7 @@ export function ExtractPage() {
   // Para implementar exportação no React Native, seria necessário usar bibliotecas específicas
 
   const renderHeader = () => (
-    <View style={styles.header}>
+    <View>
       <Text style={styles.headerTitle}>Extrato</Text>
       <Text style={styles.headerSubtitle}>
         Acompanhe todas as suas transações financeiras
