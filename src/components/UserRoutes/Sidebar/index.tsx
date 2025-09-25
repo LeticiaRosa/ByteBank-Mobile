@@ -13,6 +13,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "../../../hooks/useTheme";
 import { getThemeColors } from "../../../styles/theme";
 import { styles } from "./styles";
+import { ExtractPage } from "../Extrato";
 
 const Drawer = createDrawerNavigator();
 
@@ -83,7 +84,7 @@ export function MyDrawer() {
           ),
         }}
       >
-        {(props: any) => <Transactions {...props} />}
+        {(props: any) => <ExtractPage {...props} />}
       </Drawer.Screen>
 
       <Drawer.Screen
