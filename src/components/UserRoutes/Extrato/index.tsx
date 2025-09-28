@@ -194,7 +194,6 @@ export function ExtractPage() {
     <View style={styles.container}>
       {/* Header */}
       {renderHeader()}
-
       {/* Filtros */}
       <ExtractFilters
         onFilterChange={handleFilterChange}
@@ -243,22 +242,31 @@ export function ExtractPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 16,
     backgroundColor: "#f8f9fa",
-    margin: 8,
+    gap: 16,
   },
-
+  header: {
+    marginBottom: 16,
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: "700",
     color: "#111827",
-    padding: 8,
   },
   headerSubtitle: {
     fontSize: 14,
     color: "#6b7280",
-    padding: 8,
   },
-
+  statisticsScrollview: {
+    flexGrow: 0,
+    marginBottom: 16,
+  },
+  statisticsContainer: {
+    flexDirection: "row",
+    gap: 12,
+    paddingRight: 16,
+  },
   card: {
     backgroundColor: "white",
     borderRadius: 8,
