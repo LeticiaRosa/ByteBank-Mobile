@@ -5,16 +5,23 @@ import {
   ActivityIndicator,
   StyleSheet,
   FlatList,
+  Modal,
 } from "react-native";
 import { useTransactions } from "../../../hooks/useTransactions";
+import { useBankAccounts } from "../../../hooks/useBankAccounts";
 import { useFilteredTransactions } from "../../../hooks/useFilteredTransactions";
 import { useAuth } from "../../../hooks/useAuth";
 import { useTheme } from "../../../hooks/useTheme";
 import { useToast } from "../../../hooks/useToast";
 import { getTheme } from "../../../styles/theme";
 import { ConfirmDeleteModal } from "../../ui/ConfirmDeleteModal";
+import { NewTransactionForm } from "../Transactions/components/NewTransactionForm";
 // Importação de tipos
-import type { Transaction, PaginationOptions } from "../../../lib/transactions";
+import type {
+  Transaction,
+  PaginationOptions,
+  CreateTransactionData,
+} from "../../../lib/transactions";
 import {
   TransactionItem,
   ExtractFilters,
@@ -25,10 +32,12 @@ import { SimplePagination } from "./components/SimplePagination";
 const PAGE_SIZE = 10;
 
 export function ExtractPage() {
-  const { deleteTransaction } = useTransactions();
+  const { deleteTransaction, updateTransaction, isUpdating } =
+    useTransactions();
+  const { data: bankAccounts } = useBankAccounts();
   const { user } = useAuth();
   const { isDark } = useTheme();
-  const { showInfo, transactionSuccess, transactionError } = useToast();
+  const { transactionSuccess, transactionError } = useToast();
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -36,6 +45,11 @@ export function ExtractPage() {
     visible: false,
     transactionId: "",
     isDeleting: false,
+  });
+
+  const [editModal, setEditModal] = useState({
+    visible: false,
+    transaction: null as Transaction | null,
   });
 
   const [filters, setFilters] = useState<FilterOptions>({
@@ -121,10 +135,31 @@ export function ExtractPage() {
 
   // Funções de callback para o menu de ações
   const handleEditTransaction = async (transaction: Transaction) => {
-    showInfo({
-      title: "Editar Transação",
-      message: `Transação ${transaction.id.slice(-8)} selecionada para edição`,
+    setEditModal({
+      visible: true,
+      transaction,
     });
+  };
+
+  const handleCloseEditModal = () => {
+    setEditModal({
+      visible: false,
+      transaction: null,
+    });
+  };
+
+  const handleUpdateTransaction = async (
+    transactionId: string,
+    data: Partial<CreateTransactionData>
+  ) => {
+    try {
+      await updateTransaction(transactionId, data);
+      transactionSuccess("Transação atualizada com sucesso");
+      handleCloseEditModal();
+    } catch (error) {
+      transactionError("Não foi possível atualizar a transação");
+      throw error; // Re-throw para que o formulário possa lidar com o erro
+    }
   };
 
   const handleDeleteTransaction = async (transactionId: string) => {
@@ -334,6 +369,30 @@ export function ExtractPage() {
         isDeleting={deleteModal.isDeleting}
         transactionId={deleteModal.transactionId}
       />
+
+      {/* Modal de Edição */}
+      <Modal
+        visible={editModal.visible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={handleCloseEditModal}
+      >
+        <View style={dynamicStyles.modalContainer}>
+          <NewTransactionForm
+            primaryAccount={
+              bankAccounts?.find((acc) => acc.user_id === user?.id) || null
+            }
+            bankAccounts={bankAccounts}
+            isCreating={false}
+            onCreateTransaction={async () => {}}
+            isEditing={true}
+            editingTransaction={editModal.transaction}
+            isUpdating={isUpdating}
+            onUpdateTransaction={handleUpdateTransaction}
+            onCancelEdit={handleCloseEditModal}
+          />
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -443,6 +502,10 @@ const createStyles = (isDark: boolean) => {
     separator: {
       height: 1,
       backgroundColor: borderColor,
+    },
+    modalContainer: {
+      flex: 1,
+      backgroundColor,
     },
   });
 };

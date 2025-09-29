@@ -119,10 +119,10 @@ export function NewTransactionForm({
     if (isEditing && editingTransaction) {
       // Encontrar conta de destino para obter o número
       const toAccount = findAccountById(editingTransaction.to_account_id);
-      const amountInReais = MoneyUtils.centsToReais(editingTransaction.amount);
+      const amount = editingTransaction.amount;
       return {
         transaction_type: editingTransaction.transaction_type,
-        amount: amountInReais.toLocaleString("pt-BR", {
+        amount: amount.toLocaleString("pt-BR", {
           style: "currency",
           currency: "BRL",
         }),
