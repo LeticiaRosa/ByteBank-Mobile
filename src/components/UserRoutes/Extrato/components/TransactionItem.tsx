@@ -1,5 +1,7 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { Transaction } from "../../../../lib/transactions";
+import { useTheme } from "../../../../hooks/useTheme";
+import { getTheme, getColorScale, colors } from "../../../../styles/theme";
 
 interface TransactionItemProps {
   transaction: Transaction;
@@ -14,6 +16,40 @@ export function TransactionItem({
   onDelete,
   onProcess,
 }: TransactionItemProps) {
+  const { isDark } = useTheme();
+
+  // Cores dinâmicas baseadas no tema centralizado
+  const theme = getTheme(isDark);
+  const colorScale = getColorScale(isDark);
+
+  const transactionColors = {
+    cardBackground: theme.card,
+    iconBackground: theme.muted,
+    textPrimary: theme.foreground,
+    textSecondary: theme.mutedForeground,
+    textMuted: colorScale.gray[10],
+    // Cores dos badges usando sistema de cores de charts
+    depositBg: isDark ? colorScale.gray[3] : colorScale.gray[2],
+    depositText: colors.charts.main.green,
+    withdrawalBg: isDark ? colorScale.gray[3] : colorScale.gray[2],
+    withdrawalText: colors.destructive[isDark ? "dark" : "light"],
+    transferBg: isDark ? colorScale.blue[3] : colorScale.blue[2],
+    transferText: colors.charts.main.blue,
+    paymentBg: isDark ? colorScale.gray[3] : colorScale.gray[2],
+    paymentText: colors.charts.main.orange,
+    categoryBg: theme.accent,
+    categoryText: theme.accentForeground,
+    // Status colors usando sistema de cores
+    completedBg: isDark ? colorScale.gray[3] : colorScale.gray[2],
+    completedText: colors.charts.main.green,
+    pendingBg: isDark ? colorScale.gray[3] : colorScale.gray[2],
+    pendingText: colors.charts.main.yellow,
+    failedBg: isDark ? colorScale.gray[3] : colorScale.gray[2],
+    failedText: colors.destructive[isDark ? "dark" : "light"],
+    cancelledBg: theme.muted,
+    cancelledText: theme.mutedForeground,
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("pt-BR", {
       day: "2-digit",
@@ -70,13 +106,13 @@ export function TransactionItem({
     <TouchableOpacity
       activeOpacity={0.8}
       style={{
-        backgroundColor: "white",
+        backgroundColor: transactionColors.cardBackground,
         borderRadius: 12,
         marginVertical: 8,
         padding: 16,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
+        shadowOpacity: isDark ? 0.3 : 0.1,
         shadowRadius: 4,
         elevation: 3,
       }}
@@ -90,7 +126,7 @@ export function TransactionItem({
               width: 40,
               height: 40,
               borderRadius: 20,
-              backgroundColor: "#f4f4f5",
+              backgroundColor: transactionColors.iconBackground,
               alignItems: "center",
               justifyContent: "center",
             }}
@@ -129,13 +165,13 @@ export function TransactionItem({
                   borderRadius: 12,
                   backgroundColor:
                     transaction.transaction_type === "deposit"
-                      ? "#dcfce7"
+                      ? transactionColors.depositBg
                       : transaction.transaction_type === "withdrawal" ||
                         transaction.transaction_type === "fee"
-                      ? "#fee2e2"
+                      ? transactionColors.withdrawalBg
                       : transaction.transaction_type === "transfer"
-                      ? "#dbeafe"
-                      : "#ffedd5",
+                      ? transactionColors.transferBg
+                      : transactionColors.paymentBg,
                 }}
               >
                 <Text
@@ -144,13 +180,13 @@ export function TransactionItem({
                     fontWeight: "600",
                     color:
                       transaction.transaction_type === "deposit"
-                        ? "#16a34a"
+                        ? transactionColors.depositText
                         : transaction.transaction_type === "withdrawal" ||
                           transaction.transaction_type === "fee"
-                        ? "#dc2626"
+                        ? transactionColors.withdrawalText
                         : transaction.transaction_type === "transfer"
-                        ? "#2563eb"
-                        : "#ea580c",
+                        ? transactionColors.transferText
+                        : transactionColors.paymentText,
                   }}
                 >
                   {getTransactionTypeLabel(transaction.transaction_type)}
@@ -162,11 +198,15 @@ export function TransactionItem({
                   paddingHorizontal: 8,
                   paddingVertical: 2,
                   borderRadius: 12,
-                  backgroundColor: "#dbeafe",
+                  backgroundColor: transactionColors.categoryBg,
                 }}
               >
                 <Text
-                  style={{ fontSize: 12, fontWeight: "600", color: "#1e40af" }}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "600",
+                    color: transactionColors.categoryText,
+                  }}
                 >
                   {getCategoryLabel(transaction.category)}
                 </Text>
@@ -178,15 +218,15 @@ export function TransactionItem({
                   paddingVertical: 2,
                   borderRadius: 12,
                   borderWidth: 1,
-                  borderColor: "#e5e7eb",
+                  borderColor: theme.border,
                   backgroundColor:
                     transaction.status === "completed"
-                      ? "#dcfce7"
+                      ? transactionColors.completedBg
                       : transaction.status === "pending"
-                      ? "#fef9c3"
+                      ? transactionColors.pendingBg
                       : transaction.status === "failed"
-                      ? "#fee2e2"
-                      : "#f4f4f5",
+                      ? transactionColors.failedBg
+                      : transactionColors.cancelledBg,
                 }}
               >
                 <Text
@@ -195,12 +235,12 @@ export function TransactionItem({
                     fontWeight: "600",
                     color:
                       transaction.status === "completed"
-                        ? "#16a34a"
+                        ? transactionColors.completedText
                         : transaction.status === "pending"
-                        ? "#ca8a04"
+                        ? transactionColors.pendingText
                         : transaction.status === "failed"
-                        ? "#dc2626"
-                        : "#71717a",
+                        ? transactionColors.failedText
+                        : transactionColors.cancelledText,
                   }}
                 >
                   {transaction.status === "completed" && "Concluída"}
@@ -211,23 +251,39 @@ export function TransactionItem({
               </View>
             </View>
 
-            <Text style={{ fontSize: 16, fontWeight: "500", color: "#18181b" }}>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "500",
+                color: transactionColors.textPrimary,
+              }}
+            >
               {transaction.description || "Sem descrição"}
             </Text>
 
             {transaction.sender_name && (
-              <Text style={{ fontSize: 14, color: "#71717a" }}>
+              <Text
+                style={{ fontSize: 14, color: transactionColors.textSecondary }}
+              >
                 <Text style={{ fontWeight: "500" }}>Remetente:</Text>{" "}
                 {transaction.sender_name}
               </Text>
             )}
 
-            <Text style={{ fontSize: 14, color: "#71717a", marginTop: 4 }}>
+            <Text
+              style={{
+                fontSize: 14,
+                color: transactionColors.textSecondary,
+                marginTop: 4,
+              }}
+            >
               {formatDate(transaction.created_at)}
             </Text>
 
             {transaction.reference_number && (
-              <Text style={{ fontSize: 12, color: "#a1a1aa" }}>
+              <Text
+                style={{ fontSize: 12, color: transactionColors.textMuted }}
+              >
                 Ref: {transaction.reference_number}
               </Text>
             )}
@@ -242,8 +298,8 @@ export function TransactionItem({
               fontWeight: "bold",
               color:
                 transaction.transaction_type === "deposit"
-                  ? "#16a34a"
-                  : "#dc2626",
+                  ? transactionColors.depositText
+                  : transactionColors.withdrawalText,
             }}
           >
             {getAmountPrefix(transaction.transaction_type)}

@@ -11,6 +11,8 @@ import {
 } from "react-native";
 // Importar DateTimePicker para substituir o DatePicker
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useTheme } from "../../../../hooks/useTheme";
+import { getTheme, getColorScale } from "../../../../styles/theme";
 
 export interface FilterOptions {
   dateFrom: string;
@@ -45,166 +47,195 @@ const TRANSACTION_CATEGORIES = [
   { value: "outros", label: "Outros" },
 ];
 
-// Estilos para o componente
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,
-    marginBottom: 16,
-  },
-  cardContent: {
-    padding: 16,
-  },
-  filtersContainer: {
-    gap: 16,
-  },
-  searchRow: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 8,
-  },
-  searchInputContainer: {
-    flex: 1,
-  },
-  buttonRow: {
-    flexDirection: "row",
-    gap: 8,
-    justifyContent: "flex-end",
-  },
-  quickFiltersRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 8,
-  },
-  outlineButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 4,
-    backgroundColor: "transparent",
-  },
-  buttonText: {
-    color: "#1f2937",
-    fontSize: 12,
-  },
-  input: {
-    height: 44,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 4,
-    paddingHorizontal: 12,
-    fontSize: 16,
-  },
-  expandedFilters: {
-    maxHeight: 300,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
-  },
-  expandedFiltersContent: {
-    gap: 16,
-    paddingBottom: 16,
-  },
-  formGroup: {
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "500",
-    marginBottom: 4,
-    color: "#374151",
-  },
-  datePicker: {
-    height: 44,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 4,
-    paddingHorizontal: 12,
-    justifyContent: "center",
-  },
-  dateText: {
-    fontSize: 16,
-    color: "#1f2937",
-  },
-  placeholderText: {
-    color: "#9ca3af",
-  },
-  selectTrigger: {
-    height: 44,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 4,
-    paddingHorizontal: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  selectValue: {
-    fontSize: 16,
-    color: "#1f2937",
-  },
-  selectIcon: {
-    fontSize: 12,
-    color: "#6b7280",
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  modalContent: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    padding: 16,
-    width: "80%",
-    maxHeight: "70%",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  modalOption: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
-  },
-  modalOptionText: {
-    fontSize: 16,
-  },
-  modalCloseButton: {
-    marginTop: 16,
-    paddingVertical: 12,
-    backgroundColor: "#f3f4f6",
-    borderRadius: 4,
-    alignItems: "center",
-  },
-  modalCloseButtonText: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#374151",
-  },
-  rowFlex: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-});
+// Função para criar estilos dinâmicos baseados no tema
+const createStyles = (isDark: boolean) => {
+  const theme = getTheme(isDark);
+  const colorScale = getColorScale(isDark);
+
+  const backgroundColor = theme.card;
+  const borderColor = theme.border;
+  const textPrimary = theme.foreground;
+  const textSecondary = colorScale.gray[11];
+  const textMuted = theme.mutedForeground;
+  const placeholderColor = colorScale.gray[10];
+  const inputBackground = colorScale.gray[2];
+  const buttonBackground = "transparent";
+  const modalBackground = theme.card;
+  const modalOverlayColor = isDark ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.5)";
+  const separatorColor = theme.border;
+  const closeBtnBackground = theme.muted;
+
+  return StyleSheet.create({
+    card: {
+      backgroundColor,
+      borderRadius: 8,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: isDark ? 0.3 : 0.2,
+      shadowRadius: 3,
+      elevation: 3,
+      marginBottom: 16,
+    },
+    cardContent: {
+      padding: 16,
+    },
+    filtersContainer: {
+      gap: 16,
+    },
+    searchRow: {
+      flexDirection: "row",
+      gap: 12,
+      marginBottom: 8,
+    },
+    searchInputContainer: {
+      flex: 1,
+    },
+    buttonRow: {
+      flexDirection: "row",
+      gap: 8,
+      justifyContent: "flex-end",
+    },
+    quickFiltersRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+      marginBottom: 8,
+    },
+    outlineButton: {
+      paddingVertical: 8,
+      paddingHorizontal: 8,
+      borderWidth: 1,
+      borderColor,
+      borderRadius: 4,
+      backgroundColor: buttonBackground,
+    },
+    buttonText: {
+      color: textPrimary,
+      fontSize: 12,
+    },
+    input: {
+      height: 44,
+      borderWidth: 1,
+      borderColor,
+      borderRadius: 4,
+      paddingHorizontal: 12,
+      fontSize: 16,
+      backgroundColor: inputBackground,
+      color: textPrimary,
+    },
+    expandedFilters: {
+      maxHeight: 300,
+      paddingTop: 16,
+      borderTopWidth: 1,
+      borderTopColor: borderColor,
+    },
+    expandedFiltersContent: {
+      gap: 16,
+      paddingBottom: 16,
+    },
+    formGroup: {
+      marginBottom: 12,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: "500",
+      marginBottom: 4,
+      color: textSecondary,
+    },
+    datePicker: {
+      height: 44,
+      borderWidth: 1,
+      borderColor,
+      borderRadius: 4,
+      paddingHorizontal: 12,
+      justifyContent: "center",
+      backgroundColor: inputBackground,
+    },
+    dateText: {
+      fontSize: 16,
+      color: textPrimary,
+    },
+    placeholderText: {
+      color: placeholderColor,
+    },
+    selectTrigger: {
+      height: 44,
+      borderWidth: 1,
+      borderColor,
+      borderRadius: 4,
+      paddingHorizontal: 12,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: inputBackground,
+    },
+    selectValue: {
+      fontSize: 16,
+      color: textPrimary,
+    },
+    selectIcon: {
+      fontSize: 12,
+      color: textMuted,
+    },
+    modalOverlay: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: modalOverlayColor,
+    },
+    modalContent: {
+      backgroundColor: modalBackground,
+      borderRadius: 8,
+      padding: 16,
+      width: "80%",
+      maxHeight: "70%",
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      marginBottom: 16,
+      textAlign: "center",
+      color: textPrimary,
+    },
+    modalOption: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: separatorColor,
+    },
+    modalOptionText: {
+      fontSize: 16,
+      color: textPrimary,
+    },
+    modalCloseButton: {
+      marginTop: 16,
+      paddingVertical: 12,
+      backgroundColor: closeBtnBackground,
+      borderRadius: 4,
+      alignItems: "center",
+    },
+    modalCloseButtonText: {
+      fontSize: 16,
+      fontWeight: "500",
+      color: textSecondary,
+    },
+    rowFlex: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+    },
+  });
+};
 
 export function ExtractFilters({
   onFilterChange,
   onReset,
 }: ExtractFiltersProps) {
+  const { isDark } = useTheme();
+  const dynamicStyles = createStyles(isDark);
+  const colorScale = getColorScale(isDark);
+  const placeholderColor = colorScale.gray[10];
+
   const [filters, setFilters] = useState<FilterOptions>({
     dateFrom: "",
     dateTo: "",
@@ -324,18 +355,18 @@ export function ExtractFilters({
     const displayValue = selectedOption ? selectedOption.label : placeholder;
 
     return (
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>{label}</Text>
-        <TouchableOpacity style={styles.selectTrigger} onPress={onOpen}>
+      <View style={dynamicStyles.formGroup}>
+        <Text style={dynamicStyles.label}>{label}</Text>
+        <TouchableOpacity style={dynamicStyles.selectTrigger} onPress={onOpen}>
           <Text
             style={[
-              styles.selectValue,
-              value === "all" || !value ? styles.placeholderText : {},
+              dynamicStyles.selectValue,
+              value === "all" || !value ? dynamicStyles.placeholderText : {},
             ]}
           >
             {displayValue}
           </Text>
-          <Text style={styles.selectIcon}>▼</Text>
+          <Text style={dynamicStyles.selectIcon}>▼</Text>
         </TouchableOpacity>
       </View>
     );
@@ -361,25 +392,30 @@ export function ExtractFilters({
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>{title}</Text>
+      <View style={dynamicStyles.modalOverlay}>
+        <View style={dynamicStyles.modalContent}>
+          <Text style={dynamicStyles.modalTitle}>{title}</Text>
           <ScrollView>
             {options.map((option) => (
               <TouchableOpacity
                 key={option.value}
-                style={styles.modalOption}
+                style={dynamicStyles.modalOption}
                 onPress={() => {
                   onSelect(option.value);
                   onClose();
                 }}
               >
-                <Text style={styles.modalOptionText}>{option.label}</Text>
+                <Text style={dynamicStyles.modalOptionText}>
+                  {option.label}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
-          <TouchableOpacity style={styles.modalCloseButton} onPress={onClose}>
-            <Text style={styles.modalCloseButtonText}>Fechar</Text>
+          <TouchableOpacity
+            style={dynamicStyles.modalCloseButton}
+            onPress={onClose}
+          >
+            <Text style={dynamicStyles.modalCloseButtonText}>Fechar</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -387,15 +423,16 @@ export function ExtractFilters({
   );
 
   return (
-    <View style={styles.card}>
-      <View style={styles.cardContent}>
-        <View style={styles.filtersContainer}>
+    <View style={dynamicStyles.card}>
+      <View style={dynamicStyles.cardContent}>
+        <View style={dynamicStyles.filtersContainer}>
           {/* Campo de busca e botões de expansão/limpeza */}
-          <View style={styles.searchRow}>
-            <View style={styles.searchInputContainer}>
+          <View style={dynamicStyles.searchRow}>
+            <View style={dynamicStyles.searchInputContainer}>
               <TextInput
-                style={styles.input}
+                style={dynamicStyles.input}
                 placeholder="Buscar por descrição..."
+                placeholderTextColor={placeholderColor}
                 value={filters.description}
                 onChangeText={(text) => handleFilterChange("description", text)}
               />
@@ -403,62 +440,62 @@ export function ExtractFilters({
           </View>
 
           {/* Filtros rápidos */}
-          <View style={styles.quickFiltersRow}>
+          <View style={dynamicStyles.quickFiltersRow}>
             <TouchableOpacity
-              style={styles.outlineButton}
+              style={dynamicStyles.outlineButton}
               onPress={() => applyQuickFilter(7)}
             >
-              <Text style={styles.buttonText}>Últimos 7 dias</Text>
+              <Text style={dynamicStyles.buttonText}>Últimos 7 dias</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.outlineButton}
+              style={dynamicStyles.outlineButton}
               onPress={() => applyQuickFilter(30)}
             >
-              <Text style={styles.buttonText}>Últimos 30 dias</Text>
+              <Text style={dynamicStyles.buttonText}>Últimos 30 dias</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.outlineButton}
+              style={dynamicStyles.outlineButton}
               onPress={() => applyQuickFilter(90)}
             >
-              <Text style={styles.buttonText}>Últimos 90 dias</Text>
+              <Text style={dynamicStyles.buttonText}>Últimos 90 dias</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.buttonRow}>
+          <View style={dynamicStyles.buttonRow}>
             <TouchableOpacity
-              style={styles.outlineButton}
+              style={dynamicStyles.outlineButton}
               onPress={() => setIsExpanded(!isExpanded)}
             >
-              <Text style={styles.buttonText}>
+              <Text style={dynamicStyles.buttonText}>
                 {isExpanded ? "Menos Filtros" : "Mais Filtros"}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.outlineButton}
+              style={dynamicStyles.outlineButton}
               onPress={handleReset}
             >
-              <Text style={styles.buttonText}>Limpar</Text>
+              <Text style={dynamicStyles.buttonText}>Limpar</Text>
             </TouchableOpacity>
           </View>
 
           {/* Filtros expandidos */}
           {isExpanded && (
             <ScrollView
-              style={styles.expandedFilters}
-              contentContainerStyle={styles.expandedFiltersContent}
+              style={dynamicStyles.expandedFilters}
+              contentContainerStyle={dynamicStyles.expandedFiltersContent}
             >
               {/* Date pickers */}
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Data inicial</Text>
+              <View style={dynamicStyles.formGroup}>
+                <Text style={dynamicStyles.label}>Data inicial</Text>
                 <TouchableOpacity
-                  style={styles.datePicker}
+                  style={dynamicStyles.datePicker}
                   onPress={() => setShowDateFromPicker(true)}
                 >
                   <Text
                     style={
                       filters.dateFrom
-                        ? styles.dateText
-                        : styles.placeholderText
+                        ? dynamicStyles.dateText
+                        : dynamicStyles.placeholderText
                     }
                   >
                     {filters.dateFrom
@@ -481,15 +518,17 @@ export function ExtractFilters({
                 )}
               </View>
 
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Data final</Text>
+              <View style={dynamicStyles.formGroup}>
+                <Text style={dynamicStyles.label}>Data final</Text>
                 <TouchableOpacity
-                  style={styles.datePicker}
+                  style={dynamicStyles.datePicker}
                   onPress={() => setShowDateToPicker(true)}
                 >
                   <Text
                     style={
-                      filters.dateTo ? styles.dateText : styles.placeholderText
+                      filters.dateTo
+                        ? dynamicStyles.dateText
+                        : dynamicStyles.placeholderText
                     }
                   >
                     {filters.dateTo
@@ -540,11 +579,12 @@ export function ExtractFilters({
               />
 
               {/* Remetente */}
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Remetente</Text>
+              <View style={dynamicStyles.formGroup}>
+                <Text style={dynamicStyles.label}>Remetente</Text>
                 <TextInput
-                  style={styles.input}
+                  style={dynamicStyles.input}
                   placeholder="Nome do remetente..."
+                  placeholderTextColor={placeholderColor}
                   value={filters.senderName}
                   onChangeText={(text) =>
                     handleFilterChange("senderName", text)
@@ -553,11 +593,12 @@ export function ExtractFilters({
               </View>
 
               {/* Valor mínimo */}
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Valor mínimo</Text>
+              <View style={dynamicStyles.formGroup}>
+                <Text style={dynamicStyles.label}>Valor mínimo</Text>
                 <TextInput
-                  style={styles.input}
+                  style={dynamicStyles.input}
                   placeholder="R$ 0,00"
+                  placeholderTextColor={placeholderColor}
                   value={filters.minAmount}
                   keyboardType="numeric"
                   onChangeText={(text) => handleFilterChange("minAmount", text)}
@@ -565,11 +606,12 @@ export function ExtractFilters({
               </View>
 
               {/* Valor máximo */}
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Valor máximo</Text>
+              <View style={dynamicStyles.formGroup}>
+                <Text style={dynamicStyles.label}>Valor máximo</Text>
                 <TextInput
-                  style={styles.input}
+                  style={dynamicStyles.input}
                   placeholder="R$ 0,00"
+                  placeholderTextColor={placeholderColor}
                   value={filters.maxAmount}
                   keyboardType="numeric"
                   onChangeText={(text) => handleFilterChange("maxAmount", text)}

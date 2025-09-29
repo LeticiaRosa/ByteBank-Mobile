@@ -9,6 +9,8 @@ import {
 import { useTransactions } from "../../../hooks/useTransactions";
 import { useFilteredTransactions } from "../../../hooks/useFilteredTransactions";
 import { useAuth } from "../../../hooks/useAuth";
+import { useTheme } from "../../../hooks/useTheme";
+import { getTheme } from "../../../styles/theme";
 // Importação de tipos
 import type { Transaction, PaginationOptions } from "../../../lib/transactions";
 import {
@@ -23,6 +25,7 @@ const PAGE_SIZE = 10;
 export function ExtractPage() {
   const { deleteTransaction } = useTransactions();
   const { user } = useAuth();
+  const { isDark } = useTheme();
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -171,19 +174,19 @@ export function ExtractPage() {
 
   const renderHeader = () => (
     <View>
-      <Text style={styles.headerTitle}>Extrato</Text>
-      <Text style={styles.headerSubtitle}>
+      <Text style={dynamicStyles.headerTitle}>Extrato</Text>
+      <Text style={dynamicStyles.headerSubtitle}>
         Acompanhe todas as suas transações financeiras
       </Text>
     </View>
   );
 
   const renderCardHeader = () => (
-    <View style={styles.cardHeader}>
-      <View style={styles.cardTitleContainer}>
-        <Text style={styles.cardTitle}>Transações</Text>
+    <View style={dynamicStyles.cardHeader}>
+      <View style={dynamicStyles.cardTitleContainer}>
+        <Text style={dynamicStyles.cardTitle}>Transações</Text>
         {!isLoading && result?.pagination && (
-          <Text style={styles.cardSubtitle}>
+          <Text style={dynamicStyles.cardSubtitle}>
             ({result.pagination.total || filteredTransactions.length}{" "}
             {(result.pagination.total || filteredTransactions.length) === 1
               ? "item"
@@ -203,27 +206,30 @@ export function ExtractPage() {
     </View>
   );
 
-  const renderLoading = () => (
-    <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color="#2563eb" />
-      <Text style={styles.loadingText}>Carregando transações...</Text>
-    </View>
-  );
+  const renderLoading = () => {
+    const theme = getTheme(isDark);
+    return (
+      <View style={dynamicStyles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.primary} />
+        <Text style={dynamicStyles.loadingText}>Carregando transações...</Text>
+      </View>
+    );
+  };
 
   const renderError = () => (
-    <View style={styles.emptyContainer}>
-      <Text style={styles.emptyTitle}>Erro ao carregar transações</Text>
-      <Text style={styles.emptyText}>
+    <View style={dynamicStyles.emptyContainer}>
+      <Text style={dynamicStyles.emptyTitle}>Erro ao carregar transações</Text>
+      <Text style={dynamicStyles.emptyText}>
         Ocorreu um erro ao buscar as transações. Tente novamente.
       </Text>
     </View>
   );
 
   const renderEmptyList = () => (
-    <View style={styles.emptyContainer}>
+    <View style={dynamicStyles.emptyContainer}>
       {/* Ícone não disponível no React Native padrão, pode ser substituído */}
-      <Text style={styles.emptyTitle}>Nenhuma transação encontrada</Text>
-      <Text style={styles.emptyText}>
+      <Text style={dynamicStyles.emptyTitle}>Nenhuma transação encontrada</Text>
+      <Text style={dynamicStyles.emptyText}>
         {Object.values(filters).some((filter) => filter !== "")
           ? "Tente ajustar os filtros para encontrar mais transações."
           : "Suas transações aparecerão aqui quando você começar a usar sua conta."}
@@ -232,7 +238,7 @@ export function ExtractPage() {
   );
 
   const renderItem = ({ item }: { item: Transaction }) => (
-    <View style={styles.transactionItemContainer}>
+    <View style={dynamicStyles.transactionItemContainer}>
       <TransactionItem
         transaction={item}
         onEdit={handleEditTransaction}
@@ -242,8 +248,11 @@ export function ExtractPage() {
     </View>
   );
 
+  // Criar estilos dinâmicos baseados no tema
+  const dynamicStyles = createStyles(isDark);
+
   return (
-    <View style={styles.container}>
+    <View style={dynamicStyles.container}>
       {/* Header */}
       {renderHeader()}
       {/* Filtros */}
@@ -253,10 +262,10 @@ export function ExtractPage() {
       />
 
       {/* Lista de transações */}
-      <View style={styles.card}>
+      <View style={dynamicStyles.card}>
         {renderCardHeader()}
 
-        <View style={styles.cardContent}>
+        <View style={dynamicStyles.cardContent}>
           {isLoading ? (
             renderLoading()
           ) : errorFiltered && hasActiveFilters ? (
@@ -268,9 +277,11 @@ export function ExtractPage() {
               data={filteredTransactions}
               renderItem={renderItem}
               keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.listContent}
+              contentContainerStyle={dynamicStyles.listContent}
               showsVerticalScrollIndicator={true}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
+              ItemSeparatorComponent={() => (
+                <View style={dynamicStyles.separator} />
+              )}
             />
           )}
 
@@ -293,100 +304,111 @@ export function ExtractPage() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "#f8f9fa",
-    gap: 16,
-  },
-  header: {
-    marginBottom: 16,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#111827",
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: "#6b7280",
-  },
-  statisticsScrollview: {
-    flexGrow: 0,
-    marginBottom: 16,
-  },
-  statisticsContainer: {
-    flexDirection: "row",
-    gap: 12,
-    paddingRight: 16,
-  },
-  card: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-    marginBottom: 16,
-    flex: 1,
-  },
-  cardHeader: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  cardTitleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111827",
-  },
-  cardSubtitle: {
-    marginLeft: 8,
-    fontSize: 14,
-    color: "#6b7280",
-    fontWeight: "normal",
-  },
-  cardContent: {
-    flex: 1,
-  },
-  loadingContainer: {
-    padding: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  loadingText: {
-    marginTop: 16,
-    color: "#6b7280",
-  },
-  emptyContainer: {
-    padding: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111827",
-    marginBottom: 8,
-  },
-  emptyText: {
-    color: "#6b7280",
-    textAlign: "center",
-  },
-  listContent: {
-    paddingVertical: 8,
-  },
-  transactionItemContainer: {
-    padding: 8,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: "#e5e7eb",
-  },
-});
+// Função para criar estilos dinâmicos baseados no tema
+const createStyles = (isDark: boolean) => {
+  const theme = getTheme(isDark);
+
+  const backgroundColor = theme.background;
+  const cardBackground = theme.card;
+  const textPrimary = theme.foreground;
+  const textSecondary = theme.mutedForeground;
+  const borderColor = theme.border;
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 16,
+      backgroundColor,
+      gap: 16,
+    },
+    header: {
+      marginBottom: 16,
+    },
+    headerTitle: {
+      fontSize: 24,
+      fontWeight: "700",
+      color: textPrimary,
+    },
+    headerSubtitle: {
+      fontSize: 14,
+      color: textSecondary,
+    },
+    statisticsScrollview: {
+      flexGrow: 0,
+      marginBottom: 16,
+    },
+    statisticsContainer: {
+      flexDirection: "row",
+      gap: 12,
+      paddingRight: 16,
+    },
+    card: {
+      backgroundColor: cardBackground,
+      borderRadius: 8,
+      shadowColor: isDark ? "#000" : "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 3,
+      elevation: 3,
+      marginBottom: 16,
+      flex: 1,
+    },
+    cardHeader: {
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: borderColor,
+    },
+    cardTitleContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    cardTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: textPrimary,
+    },
+    cardSubtitle: {
+      marginLeft: 8,
+      fontSize: 14,
+      color: textSecondary,
+      fontWeight: "normal",
+    },
+    cardContent: {
+      flex: 1,
+    },
+    loadingContainer: {
+      padding: 32,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    loadingText: {
+      marginTop: 16,
+      color: textSecondary,
+    },
+    emptyContainer: {
+      padding: 32,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: textPrimary,
+      marginBottom: 8,
+    },
+    emptyText: {
+      color: textSecondary,
+      textAlign: "center",
+    },
+    listContent: {
+      paddingVertical: 8,
+    },
+    transactionItemContainer: {
+      padding: 8,
+    },
+    separator: {
+      height: 1,
+      backgroundColor: borderColor,
+    },
+  });
+};
