@@ -671,12 +671,19 @@ export function useTransaction(id?: string) {
  */
 export function useFilteredTransactions(
   filters: FilterOptions,
-  pagination?: PaginationOptions
+  userId: string,
+  pagination?: PaginationOptions,
+  enabled: boolean = true
 ) {
   return useQuery({
-    queryKey: [...QUERY_KEYS.transactions.filtered(), filters, pagination],
-    queryFn: () =>
-      transactionService.getFilteredTransactions(filters, pagination),
+    queryKey: [
+      ...QUERY_KEYS.transactions.filtered(),
+      filters,
+      userId,
+      pagination,
+    ],
+    queryFn: () => getFilteredTransactions(filters, userId, pagination),
+    enabled: enabled && !!userId,
     ...QUERY_CONFIG.transactions,
   });
 }
@@ -753,6 +760,17 @@ export function useDeleteTransaction() {
       });
     },
   });
+}
+
+// queryTransactions removida - usar transactionService.getFilteredTransactions
+
+export async function getFilteredTransactions(
+  filters: FilterOptions,
+  userId: string,
+  pagination?: PaginationOptions
+): Promise<PaginatedResult<Transaction>> {
+  // Usar o transactionService diretamente
+  return await transactionService.getFilteredTransactions(filters, pagination);
 }
 
 // Exports das instâncias dos serviços

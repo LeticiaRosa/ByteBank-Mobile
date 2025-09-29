@@ -5,11 +5,12 @@ import {
   ActivityIndicator,
   StyleSheet,
   FlatList,
-  ScrollView,
 } from "react-native";
 import { useTransactions } from "../../../hooks/useTransactions";
+import { useFilteredTransactions } from "../../../hooks/useFilteredTransactions";
+import { useAuth } from "../../../hooks/useAuth";
 // Importação de tipos
-import type { Transaction } from "../../../lib/transactions";
+import type { Transaction, PaginationOptions } from "../../../lib/transactions";
 import {
   TransactionItem,
   ExtractFilters,
@@ -21,6 +22,7 @@ const PAGE_SIZE = 10;
 
 export function ExtractPage() {
   const { deleteTransaction } = useTransactions();
+  const { user } = useAuth();
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -36,33 +38,74 @@ export function ExtractPage() {
     senderName: "",
   });
 
-  // Usar transações diretamente do hook useTransactions
+  // Configurar paginação
+  const paginationOptions: PaginationOptions = {
+    page: currentPage,
+    pageSize: PAGE_SIZE,
+  };
+
+  // Verificar se há filtros ativos (não são valores padrão)
+  const hasActiveFilters = useMemo(() => {
+    return Object.entries(filters).some(([key, value]) => {
+      if (key === "transactionType" || key === "status" || key === "category") {
+        return value !== "all";
+      }
+      return value !== "" && value.trim() !== "";
+    });
+  }, [filters]);
+
+  // Usar transações filtradas quando há filtros ativos, senão usar todas as transações
+  const {
+    data: filteredResult,
+    isLoading: isLoadingFiltered,
+    error: errorFiltered,
+  } = useFilteredTransactions(
+    filters,
+    user?.id || "",
+    paginationOptions,
+    hasActiveFilters && !!user?.id
+  );
+
+  // Fallback para todas as transações quando não há filtros
   const { transactions: allTransactions, isLoadingTransactions } =
     useTransactions();
 
-  // Mock do resultado com paginação - pode ser implementado com um hook personalizado posteriormente
+  // Determinar qual resultado usar
   const result = useMemo(() => {
-    return {
-      data: allTransactions || [],
-      pagination: {
-        page: currentPage,
-        pageSize: PAGE_SIZE,
-        total: allTransactions?.length || 0,
-        hasNextPage: allTransactions
-          ? currentPage * PAGE_SIZE < allTransactions.length
-          : false,
-        hasPreviousPage: currentPage > 1,
-      },
-    };
-  }, [allTransactions, currentPage]);
+    if (hasActiveFilters && filteredResult) {
+      return filteredResult;
+    }
 
-  /*Corrigindo o valor de amount de centavos para reais*/
-  const filteredTransactions = result?.data
-    ? result.data.map((transaction: Transaction) => ({
-        ...transaction,
-        amount: transaction.amount, // Convertendo de centavos para reais
-      }))
-    : [];
+    // Para transações sem filtro, aplicar paginação manual
+    if (allTransactions) {
+      const startIndex = (currentPage - 1) * PAGE_SIZE;
+      const endIndex = startIndex + PAGE_SIZE;
+      const paginatedData = allTransactions.slice(startIndex, endIndex);
+
+      return {
+        data: paginatedData,
+        pagination: {
+          page: currentPage,
+          pageSize: PAGE_SIZE,
+          total: allTransactions.length,
+          from: startIndex,
+          to: Math.min(endIndex - 1, allTransactions.length - 1),
+          hasNextPage: endIndex < allTransactions.length,
+          hasPreviousPage: currentPage > 1,
+        },
+      };
+    }
+
+    return null;
+  }, [hasActiveFilters, filteredResult, allTransactions, currentPage]);
+
+  // Determinar estado de loading
+  const isLoading = hasActiveFilters
+    ? isLoadingFiltered
+    : isLoadingTransactions;
+
+  /*Os valores já estão em reais vindos do serviço*/
+  const filteredTransactions = result?.data || [];
 
   // Funções de callback para o menu de ações
   const handleEditTransaction = async (transaction: Transaction) => {
@@ -139,7 +182,7 @@ export function ExtractPage() {
     <View style={styles.cardHeader}>
       <View style={styles.cardTitleContainer}>
         <Text style={styles.cardTitle}>Transações</Text>
-        {!isLoadingTransactions && result?.pagination && (
+        {!isLoading && result?.pagination && (
           <Text style={styles.cardSubtitle}>
             ({result.pagination.total || filteredTransactions.length}{" "}
             {(result.pagination.total || filteredTransactions.length) === 1
@@ -164,6 +207,15 @@ export function ExtractPage() {
     <View style={styles.loadingContainer}>
       <ActivityIndicator size="large" color="#2563eb" />
       <Text style={styles.loadingText}>Carregando transações...</Text>
+    </View>
+  );
+
+  const renderError = () => (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyTitle}>Erro ao carregar transações</Text>
+      <Text style={styles.emptyText}>
+        Ocorreu um erro ao buscar as transações. Tente novamente.
+      </Text>
     </View>
   );
 
@@ -205,8 +257,10 @@ export function ExtractPage() {
         {renderCardHeader()}
 
         <View style={styles.cardContent}>
-          {isLoadingTransactions ? (
+          {isLoading ? (
             renderLoading()
+          ) : errorFiltered && hasActiveFilters ? (
+            renderError()
           ) : filteredTransactions.length === 0 ? (
             renderEmptyList()
           ) : (
@@ -221,7 +275,7 @@ export function ExtractPage() {
           )}
 
           {/* Paginação */}
-          {!isLoadingTransactions &&
+          {!isLoading &&
             filteredTransactions.length > 0 &&
             result?.pagination && (
               <SimplePagination
@@ -230,7 +284,7 @@ export function ExtractPage() {
                 hasPreviousPage={result.pagination.hasPreviousPage}
                 onPageChange={handlePageChange}
                 itemCount={filteredTransactions.length}
-                totalCount={result.pagination.total}
+                totalCount={result.pagination.total || 0}
               />
             )}
         </View>
