@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Confirme sua conta - ByteBank</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 500px;
+        margin: 40px auto;
+        padding: 20px;
+        background-color: #f9fafb;
+      }
+
+      .card {
+        background: white;
+        border-radius: 12px;
+        padding: 40px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        text-align: center;
+      }
+
+      .logo {
+        font-size: 28px;
+        font-weight: bold;
+        color: #667eea;
+        margin-bottom: 10px;
+      }
+
+      h2 {
+        color: #2d3748;
+        margin-bottom: 20px;
+        font-size: 24px;
+      }
+
+      p {
+        margin-bottom: 25px;
+        color: #4a5568;
+        font-size: 16px;
+      }
+
+      .confirm-btn {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        text-decoration: none;
+        padding: 15px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        margin: 20px 0;
+      }
+
+      .confirm-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      }
+
+      .footer {
+        margin-top: 30px;
+        font-size: 14px;
+        color: #718096;
+      }
+
+      .security {
+        background: #fef5e7;
+        border-left: 3px solid #f6d55c;
+        padding: 15px;
+        margin: 25px 0;
+        border-radius: 0 6px 6px 0;
+        text-align: left;
+      }
+
+      @media (max-width: 600px) {
+        body {
+          margin: 20px auto;
+          padding: 10px;
+        }
+        .card {
+          padding: 30px 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="logo">ByteBank</div>
+
+      <h2>Confirme seu cadastro</h2>
+
+      <p>Olá <strong>{{ .Name }}</strong>,</p>
+
+      <p>
+        Para completar seu cadastro no ByteBank e começar a usar todos os nossos
+        serviços, clique no botão abaixo:
+      </p>
+
+      <a href="{{ .ConfirmationURL }}" class="confirm-btn">
+        Confirmar minha conta
+      </a>
+
+      <div class="security">
+        <strong>🔒 Segurança:</strong> Este link expira em 24 horas e só pode
+        ser usado uma vez.
+      </div>
+
+      <div class="footer">
+        <p>Se você não criou esta conta, pode ignorar este e-mail.</p>
+        <p><strong>Enviado para:</strong> {{ .Email }}</p>
+        <p>© 2025 ByteBank. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+========================================
+BYTEBANK - Confirme sua conta
+========================================
+
+Olá {{ .Name }},
+
+Bem-vindo ao ByteBank! 🎉
+
+Estamos muito felizes em tê-lo conosco. Para ativar sua conta e garantir a segurança dos seus dados, precisamos confirmar seu endereço de e-mail.
+
+CONFIRMAR CONTA:
+{{ .ConfirmationURL }}
+
+⚠️  IMPORTANTE:
+- Este link é válido por 24 horas
+- Pode ser usado apenas uma vez
+- Se você não criou esta conta, ignore este e-mail
+
+Após a confirmação, você poderá:
+✓ Acessar sua conta bancária digital
+✓ Realizar transferências e pagamentos  
+✓ Acompanhar seu extrato em tempo real
+✓ Gerenciar suas finanças com segurança
+
+----------------------------------------
+PRECISA DE AJUDA?
+----------------------------------------
+Central de Ajuda: https://bytebank.com/help
+E-mail: suporte@bytebank.com
+Telefone: 0800 123 4567
+
+----------------------------------------
+Este e-mail foi enviado para: {{ .Email }}
+
+© 2025 ByteBank. Todos os direitos reservados.
+ByteBank - Inovação e segurança em serviços financeiros digitais.
+
+Se você não solicitou esta conta, pode ignorar este e-mail com segurança.

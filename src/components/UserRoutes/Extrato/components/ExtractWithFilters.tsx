@@ -2,13 +2,13 @@ import React from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
   ActivityIndicator,
   FlatList,
   StyleSheet,
 } from "react-native";
 import { ExtractFilters, type FilterOptions } from "./ExtractFilters";
 import { TransactionItem } from "./TransactionItem";
+import { SimplePagination } from "./SimplePagination";
 import type { Transaction } from "../../../../lib/transactions";
 import { useTransactions } from "../../../../hooks/useTransactions";
 
@@ -236,41 +236,14 @@ export function ExtractWithFilters({
     }
 
     return (
-      <View style={styles.paginationContainer}>
-        <Text style={styles.paginationText}>
-          Mostrando {paginationInfo.from + 1} a {paginationInfo.to + 1} de{" "}
-          {paginationInfo.total || "muitos"} resultados
-        </Text>
-
-        <View style={styles.paginationControls}>
-          <TouchableOpacity
-            style={[
-              styles.paginationButton,
-              !paginationInfo.hasPreviousPage &&
-                styles.paginationButtonDisabled,
-            ]}
-            onPress={() => setCurrentPage(currentPage - 1)}
-            disabled={!paginationInfo.hasPreviousPage}
-          >
-            <Text style={styles.paginationButtonText}>Anterior</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.paginationPageNumber}>
-            Página {paginationInfo.page}
-          </Text>
-
-          <TouchableOpacity
-            style={[
-              styles.paginationButton,
-              !paginationInfo.hasNextPage && styles.paginationButtonDisabled,
-            ]}
-            onPress={() => setCurrentPage(currentPage + 1)}
-            disabled={!paginationInfo.hasNextPage}
-          >
-            <Text style={styles.paginationButtonText}>Próxima</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <SimplePagination
+        currentPage={paginationInfo.page}
+        hasNextPage={paginationInfo.hasNextPage}
+        hasPreviousPage={paginationInfo.hasPreviousPage}
+        onPageChange={setCurrentPage}
+        itemCount={pageSize}
+        totalCount={paginationInfo.total}
+      />
     );
   };
 
@@ -382,42 +355,5 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     backgroundColor: "#e5e7eb",
-  },
-  paginationContainer: {
-    padding: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
-    backgroundColor: "#f9fafb",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    flexWrap: "wrap",
-  },
-  paginationText: {
-    fontSize: 14,
-    color: "#6b7280",
-  },
-  paginationControls: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  paginationButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 4,
-    backgroundColor: "white",
-  },
-  paginationButtonDisabled: {
-    opacity: 0.5,
-  },
-  paginationButtonText: {
-    fontSize: 14,
-  },
-  paginationPageNumber: {
-    fontSize: 14,
-    paddingHorizontal: 8,
   },
 });

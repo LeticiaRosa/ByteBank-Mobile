@@ -223,9 +223,55 @@ export function NewTransactionForm({
     );
   };
 
-  // Função para lidar com upload de imagem
+  // Função para mostrar opções de imagem (câmera ou galeria)
   const handleImagePick = async () => {
+    Alert.alert("Selecionar Comprovante", "Escolha uma opção:", [
+      { text: "Cancelar", style: "cancel" },
+      { text: "Câmera", onPress: () => handleCameraPick() },
+      { text: "Galeria", onPress: () => handleLibraryPick() },
+    ]);
+  };
+
+  // Função para tirar foto da câmera
+  const handleCameraPick = async () => {
     try {
+      console.log("📷 Iniciando função de câmera...");
+      console.log("📱 ImagePicker disponível:", !!ImagePicker);
+      const cameraPermission =
+        await ImagePicker.requestCameraPermissionsAsync();
+
+      if (!cameraPermission.granted) {
+        Alert.alert(
+          "Permissão necessária",
+          "Precisamos da permissão para acessar sua câmera."
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled) {
+        setFormData((prev) => ({
+          ...prev,
+          receipt_file: result.assets[0],
+        }));
+      }
+    } catch (error) {
+      console.error("Erro ao tirar foto:", error);
+      Alert.alert("Erro", "Não foi possível tirar a foto. Tente novamente.");
+    }
+  };
+
+  // Função para selecionar da galeria
+  const handleLibraryPick = async () => {
+    try {
+      console.log("🖼️ Iniciando função de galeria...");
+      console.log("📱 ImagePicker disponível:", !!ImagePicker);
       const permissionResult =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
 
@@ -238,7 +284,7 @@ export function NewTransactionForm({
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
@@ -289,11 +335,39 @@ export function NewTransactionForm({
         category: formData.category,
         sender_name: formData.sender_name.trim() || undefined,
         receipt_file: formData.receipt_file
-          ? {
-              uri: formData.receipt_file.uri,
-              type: "image/jpeg", // assumindo formato JPEG, ajuste conforme necessário
-              name: `receipt-${Date.now()}.jpg`,
-            }
+          ? (() => {
+              // Garantir tipo MIME correto
+              let mimeType = formData.receipt_file.mimeType;
+              const ext = (
+                formData.receipt_file.fileName || formData.receipt_file.uri
+              )
+                ?.split(".")
+                .pop()
+                ?.toLowerCase();
+
+              if (!mimeType) {
+                switch (ext) {
+                  case "jpg":
+                  case "jpeg":
+                    mimeType = "image/jpeg";
+                    break;
+                  case "png":
+                    mimeType = "image/png";
+                    break;
+                  case "webp":
+                    mimeType = "image/webp";
+                    break;
+                  default:
+                    mimeType = "image/jpeg";
+                }
+              }
+
+              return {
+                uri: formData.receipt_file.uri,
+                type: mimeType,
+                name: `receipt-${Date.now()}.${ext || "jpg"}`,
+              };
+            })()
           : undefined,
       };
 

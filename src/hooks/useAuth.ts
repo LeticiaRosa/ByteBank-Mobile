@@ -76,60 +76,104 @@ class BankAccountService {
     userId: string,
     accountData: CreateBankAccountData
   ): Promise<BankAccount> {
-    // Função para gerar número de conta único
-    const generateAccountNumber = () => {
-      const timestamp = Date.now().toString();
-      const random = Math.floor(Math.random() * 1000)
-        .toString()
-        .padStart(3, "0");
-      const userIdShort = userId.slice(-4); // Últimos 4 caracteres do user ID
-      return `${timestamp.slice(-8)}${random}${userIdShort}`;
-    };
+    // Verificar se o usuário está autenticado e obter sessão
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
 
-    let accountNumber = generateAccountNumber();
-    let attempts = 0;
-    const maxAttempts = 5;
-
-    // Verificar se o número da conta já existe e gerar um novo se necessário
-    while (attempts < maxAttempts) {
-      const { data: existingAccount } = await supabase
-        .from("bank_accounts")
-        .select("account_number")
-        .eq("account_number", accountNumber)
-        .single();
-
-      if (!existingAccount) {
-        break; // Número único encontrado
-      }
-
-      accountNumber = generateAccountNumber();
-      attempts++;
+    if (sessionError || !session || !session.user) {
+      throw new Error("Usuário não autenticado ou sessão inválida");
     }
 
-    if (attempts >= maxAttempts) {
-      throw new Error("Não foi possível gerar um número de conta único");
+    if (session.user.id !== userId) {
+      throw new Error("ID do usuário não confere com usuário autenticado");
     }
+
+    // Verificar se o usuário já tem uma conta ativa
+    const { data: existingAccounts, error: checkError } = await supabase
+      .from("bank_accounts")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .limit(1);
+
+    if (checkError) {
+      console.warn("Erro ao verificar contas existentes:", checkError.message);
+    }
+
+    if (existingAccounts && existingAccounts.length > 0) {
+      throw new Error("Usuário já possui uma conta bancária ativa");
+    }
+
+    // Gerar número de conta único usando a função do banco
+    const { data: accountNumber, error: accountNumberError } =
+      await supabase.rpc("generate_account_number");
+
+    if (accountNumberError || !accountNumber) {
+      throw new Error("Erro ao gerar número da conta");
+    }
+
+    // Converter balance de reais para centavos (valores decimais para bigint)
+    const balanceInCents = Math.round((accountData.balance || 0) * 100);
 
     const bankAccountData = {
       user_id: userId,
       account_number: accountNumber,
       account_type: accountData.account_type || "checking",
-      balance: accountData.balance || 0.0,
+      balance: balanceInCents, // Em centavos como bigint
       currency: accountData.currency || "BRL",
       is_active: true,
     };
 
-    const { data, error } = await supabase
-      .from("bank_accounts")
-      .insert(bankAccountData)
-      .select()
-      .single();
+    // Tentar inserir com retry para lidar com problemas de sessão
+    let attempts = 0;
+    const maxAttempts = 3;
 
-    if (error) {
-      throw new Error(`Erro ao criar conta bancária: ${error.message}`);
+    while (attempts < maxAttempts) {
+      attempts++;
+
+      try {
+        const { data, error } = await supabase
+          .from("bank_accounts")
+          .insert(bankAccountData)
+          .select()
+          .single();
+
+        if (error) {
+          // Se for erro de RLS e ainda temos tentativas, aguardar um pouco
+          if (
+            error.message.includes("row-level security") &&
+            attempts < maxAttempts
+          ) {
+            console.warn(`Tentativa ${attempts}: Erro de RLS, aguardando...`);
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            continue;
+          }
+          throw new Error(`Erro ao criar conta bancária: ${error.message}`);
+        }
+
+        if (!data) {
+          throw new Error("Erro ao criar conta bancária: resposta vazia");
+        }
+
+        // Converter balance de volta para reais para retorno da interface
+        const result = {
+          ...data,
+          balance: (data.balance || 0) / 100, // Converter centavos para reais
+        };
+
+        return result as BankAccount;
+      } catch (error) {
+        if (attempts === maxAttempts) {
+          throw error;
+        }
+        console.warn(`Tentativa ${attempts} falhou:`, error);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
     }
 
-    return data as BankAccount;
+    throw new Error("Erro ao criar conta bancária após múltiplas tentativas");
   }
 }
 
@@ -306,14 +350,37 @@ export function useAuth() {
       // Se o usuário foi criado com sucesso, criar uma conta bancária padrão
       if (result.data.user) {
         try {
-          await createBankAccountMutation.mutateAsync({
-            userId: result.data.user.id,
-            accountData: {
-              account_type: "checking", // Conta corrente como padrão
-              balance: 0.0,
-              currency: "BRL",
-            },
-          });
+          // Aguardar um momento para garantir que a sessão seja estabelecida
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+
+          // Verificar se a sessão foi estabelecida corretamente
+          const { data: sessionData, error: sessionError } =
+            await supabase.auth.getSession();
+
+          if (sessionError || !sessionData.session) {
+            console.warn(
+              "Sessão não estabelecida ainda, usuário pode criar conta manualmente depois"
+            );
+            return { success: true, user: result.data.user };
+          }
+
+          console.log(
+            "Criando conta bancária automática para o usuário:",
+            result.data.user.id
+          );
+
+          const bankAccountResult = await createBankAccountMutation.mutateAsync(
+            {
+              userId: result.data.user.id,
+              accountData: {
+                account_type: "checking", // Conta corrente como padrão
+                balance: 0.0,
+                currency: "BRL",
+              },
+            }
+          );
+
+          console.log("Conta bancária criada com sucesso:", bankAccountResult);
         } catch (bankAccountError: any) {
           // Se falhar ao criar a conta bancária, ainda retorna sucesso no signup
           // mas loga o erro para investigação
@@ -321,6 +388,10 @@ export function useAuth() {
             "Erro ao criar conta bancária automática:",
             bankAccountError
           );
+
+          // NOTA: Se a criação automática falhar, o usuário pode usar o BankAccountCreationHelper
+          // para tentar criar a conta manualmente depois do login
+          // Exemplo: BankAccountCreationHelper.createBankAccountManual()
           // Não falha o signup por causa disso, mas pode ser tratado posteriormente
         }
       }

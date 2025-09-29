@@ -3,6 +3,21 @@ import { supabase } from "./supabase";
 import { QUERY_KEYS, QUERY_CONFIG } from "./query-config";
 import { MoneyUtils } from "../utils/money.utils";
 
+// Utilitário para verificar conectividade
+const checkConnectivity = async (): Promise<boolean> => {
+  try {
+    const response = await fetch(
+      "https://hsaxnladdipftthqhing.supabase.co/rest/v1/",
+      {
+        method: "HEAD",
+      }
+    );
+    return response.ok;
+  } catch {
+    return false;
+  }
+};
+
 export interface FilterOptions {
   dateFrom: string;
   dateTo: string;
@@ -50,15 +65,14 @@ export interface Transaction {
 }
 
 export interface CreateTransactionData {
-  from_account_id?: string;
-  to_account_id?: string;
   transaction_type: "deposit" | "withdrawal" | "transfer" | "payment" | "fee";
-  amount: number; // Valor em reais (será convertido para centavos)
-  description?: string;
-  metadata?: any;
-  category?: TransactionCategory;
-  sender_name?: string;
-  receipt_file?: File; // Arquivo de comprovante (opcional)
+  amount: number; // Valor em reais (será convertido para centavos internamente)
+  description: string;
+  from_account_id: string;
+  to_account_id?: string; // Opcional, apenas para transferências
+  category: TransactionCategory;
+  sender_name?: string; // Opcional, nome de quem enviou (para deposit)
+  receipt_file?: File | { uri: string; type: string; name: string }; // Arquivo de comprovante (opcional) - suporte React Native
 }
 
 export interface PaginationOptions {
@@ -244,19 +258,137 @@ export class TransactionService {
     let finalTransaction = transaction;
     if (receipt_file) {
       try {
-        const fileExt = receipt_file.name.split(".").pop();
-        const fileName = `${user.id}/${transaction.id}.${fileExt}`;
+        // Criar um Blob/File adequado para React Native
+        let fileToUpload: File | Blob;
+        let fileName: string;
 
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("receipts")
-          .upload(fileName, receipt_file);
+        if ("uri" in receipt_file) {
+          // React Native: converter URI para Blob
+          const response = await fetch(receipt_file.uri);
+          const blob = await response.blob();
+
+          // Garantir que temos um tipo MIME válido
+          let mimeType = receipt_file.type;
+          if (!mimeType || mimeType === "application/octet-stream") {
+            // Inferir tipo MIME pela extensão do arquivo
+            const ext = receipt_file.name.split(".").pop()?.toLowerCase();
+            switch (ext) {
+              case "jpg":
+              case "jpeg":
+                mimeType = "image/jpeg";
+                break;
+              case "png":
+                mimeType = "image/png";
+                break;
+              case "webp":
+                mimeType = "image/webp";
+                break;
+              case "pdf":
+                mimeType = "application/pdf";
+                break;
+              default:
+                mimeType = "image/jpeg"; // fallback seguro
+            }
+          }
+
+          fileToUpload = new File([blob], receipt_file.name, {
+            type: mimeType,
+          });
+          fileName = `${user.id}/${transaction.id}-${receipt_file.name}`;
+
+          console.log("📤 Upload Info:", {
+            originalType: receipt_file.type,
+            finalType: mimeType,
+            fileName: fileName,
+            blobSize: blob.size,
+            blobType: blob.type,
+          });
+        } else {
+          // Web: usar File diretamente
+          fileToUpload = receipt_file;
+          const fileExt = receipt_file.name.split(".").pop();
+          fileName = `${user.id}/${transaction.id}.${fileExt}`;
+        }
+
+        // Testar conectividade básica primeiro
+        console.log("🌐 Testando conectividade com Supabase...");
+        const isConnected = await checkConnectivity();
+        if (isConnected) {
+          console.log("✅ Conectividade OK");
+        } else {
+          console.warn(
+            "⚠️ Problema de conectividade detectado - upload pode falhar"
+          );
+        }
+
+        // Tentar upload com retry em caso de falha de rede
+        let uploadData, uploadError;
+        let attempts = 0;
+        const maxAttempts = 3;
+
+        while (attempts < maxAttempts) {
+          attempts++;
+          console.log(`📤 Tentativa ${attempts}/${maxAttempts} de upload...`);
+          console.log(
+            `📊 Tamanho do arquivo: ${(fileToUpload.size / 1024).toFixed(1)}KB`
+          );
+
+          const startTime = Date.now();
+          const result = await supabase.storage
+            .from("byte-bank")
+            .upload(fileName, fileToUpload);
+          const endTime = Date.now();
+
+          console.log(`⏱️ Tempo de tentativa: ${endTime - startTime}ms`);
+
+          uploadData = result.data;
+          uploadError = result.error;
+
+          if (!uploadError) {
+            break; // Sucesso!
+          }
+
+          console.log(`❌ Tentativa ${attempts} falhou:`, uploadError.message);
+
+          // Se não é erro de rede, não tentar novamente
+          if (
+            !uploadError.message.includes("Network request failed") &&
+            !uploadError.message.includes("fetch")
+          ) {
+            break;
+          }
+
+          // Aguardar antes da próxima tentativa
+          if (attempts < maxAttempts) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, 1000 * attempts)
+            );
+          }
+        }
 
         if (uploadError) {
-          console.error("Erro no upload do comprovante:", uploadError);
+          console.error(
+            "Erro no upload do comprovante após",
+            attempts,
+            "tentativas:",
+            uploadError
+          );
+          console.warn(
+            "⚠️ Transação criada sem comprovante devido a erro de upload"
+          );
+
+          // Orientações para o usuário
+          console.log("💡 Dicas para resolver problemas de upload:");
+          console.log("   • Verifique sua conexão com a internet");
+          console.log("   • Tente novamente em alguns minutos");
+          console.log("   • Use uma conexão Wi-Fi mais estável se possível");
+          console.log(
+            "   • A transação foi salva com sucesso, apenas o comprovante não foi anexado"
+          );
         } else if (uploadData) {
           // Gerar URL pública para o comprovante
           const { data: publicUrl } = supabase.storage
-            .from("receipts")
+            .from("byte-bank")
             .getPublicUrl(fileName);
 
           if (publicUrl) {
@@ -364,19 +496,112 @@ export class TransactionService {
     // Se há um arquivo de comprovante, fazer upload
     if (receipt_file) {
       try {
-        const fileExt = receipt_file.name.split(".").pop();
-        const fileName = `${user.id}/${transactionId}.${fileExt}`;
+        // Criar um Blob/File adequado para React Native
+        let fileToUpload: File | Blob;
+        let fileName: string;
 
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("receipts")
-          .upload(fileName, receipt_file, { upsert: true });
+        if ("uri" in receipt_file) {
+          // React Native: converter URI para Blob
+          const response = await fetch(receipt_file.uri);
+          const blob = await response.blob();
+
+          // Garantir que temos um tipo MIME válido
+          let mimeType = receipt_file.type;
+          if (!mimeType || mimeType === "application/octet-stream") {
+            // Inferir tipo MIME pela extensão do arquivo
+            const ext = receipt_file.name.split(".").pop()?.toLowerCase();
+            switch (ext) {
+              case "jpg":
+              case "jpeg":
+                mimeType = "image/jpeg";
+                break;
+              case "png":
+                mimeType = "image/png";
+                break;
+              case "webp":
+                mimeType = "image/webp";
+                break;
+              case "pdf":
+                mimeType = "application/pdf";
+                break;
+              default:
+                mimeType = "image/jpeg"; // fallback seguro
+            }
+          }
+
+          fileToUpload = new File([blob], receipt_file.name, {
+            type: mimeType,
+          });
+          fileName = `${user.id}/${transactionId}-${receipt_file.name}`;
+
+          console.log("📤 Upload Info (Update):", {
+            originalType: receipt_file.type,
+            finalType: mimeType,
+            fileName: fileName,
+            blobSize: blob.size,
+            blobType: blob.type,
+          });
+        } else {
+          // Web: usar File diretamente
+          fileToUpload = receipt_file;
+          const fileExt = receipt_file.name.split(".").pop();
+          fileName = `${user.id}/${transactionId}.${fileExt}`;
+        }
+
+        // Tentar upload com retry em caso de falha de rede
+        let uploadData, uploadError;
+        let attempts = 0;
+        const maxAttempts = 3;
+
+        while (attempts < maxAttempts) {
+          attempts++;
+          console.log(
+            `📤 Tentativa ${attempts}/${maxAttempts} de upload (update)...`
+          );
+
+          const result = await supabase.storage
+            .from("byte-bank")
+            .upload(fileName, fileToUpload, { upsert: true });
+
+          uploadData = result.data;
+          uploadError = result.error;
+
+          if (!uploadError) {
+            break; // Sucesso!
+          }
+
+          console.log(`❌ Tentativa ${attempts} falhou:`, uploadError.message);
+
+          // Se não é erro de rede, não tentar novamente
+          if (
+            !uploadError.message.includes("Network request failed") &&
+            !uploadError.message.includes("fetch")
+          ) {
+            break;
+          }
+
+          // Aguardar antes da próxima tentativa
+          if (attempts < maxAttempts) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, 1000 * attempts)
+            );
+          }
+        }
 
         if (uploadError) {
-          console.error("Erro no upload do comprovante:", uploadError);
+          console.error(
+            "Erro no upload do comprovante após",
+            attempts,
+            "tentativas:",
+            uploadError
+          );
+          console.warn(
+            "⚠️ Transação atualizada sem comprovante devido a erro de upload"
+          );
         } else if (uploadData) {
           // Gerar URL pública para o comprovante
           const { data: publicUrl } = supabase.storage
-            .from("receipts")
+            .from("byte-bank")
             .getPublicUrl(fileName);
 
           if (publicUrl) {

@@ -67,7 +67,7 @@ export function MyDrawer() {
         {(props: any) => <Home {...props} />}
       </Drawer.Screen>
       <Drawer.Screen
-        name="Transações"
+        name="Nova Transação"
         options={{
           drawerIcon: ({ color, size }: { color?: string; size?: number }) => (
             <ArrowRightLeft color={color} size={size ?? 18} />
