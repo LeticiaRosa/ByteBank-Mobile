@@ -12,6 +12,7 @@ import { useAuth } from "../../../hooks/useAuth";
 import { useTheme } from "../../../hooks/useTheme";
 import { useToast } from "../../../hooks/useToast";
 import { getTheme } from "../../../styles/theme";
+import { ConfirmDeleteModal } from "../../ui/ConfirmDeleteModal";
 // Importação de tipos
 import type { Transaction, PaginationOptions } from "../../../lib/transactions";
 import {
@@ -27,9 +28,15 @@ export function ExtractPage() {
   const { deleteTransaction } = useTransactions();
   const { user } = useAuth();
   const { isDark } = useTheme();
-  const { showInfo, showWarning, transactionSuccess, transactionError } = useToast();
+  const { showInfo, transactionSuccess, transactionError } = useToast();
 
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [deleteModal, setDeleteModal] = useState({
+    visible: false,
+    transactionId: "",
+    isDeleting: false,
+  });
 
   const [filters, setFilters] = useState<FilterOptions>({
     dateFrom: "",
@@ -121,21 +128,29 @@ export function ExtractPage() {
   };
 
   const handleDeleteTransaction = async (transactionId: string) => {
-    // Mostrar toast de confirmação
-    showWarning({
-      title: "Confirmar Exclusão",
-      message: "Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita.",
-      duration: 6000, // Maior duração para dar tempo de ler
-      onPress: async () => {
-        // Usuário tocou no toast para confirmar
-        try {
-          await deleteTransaction(transactionId);
-          transactionSuccess("Transação excluída com sucesso");
-        } catch (error) {
-          transactionError("Não foi possível excluir a transação");
-        }
-      },
+    // Mostrar modal de confirmação
+    setDeleteModal({
+      visible: true,
+      transactionId,
+      isDeleting: false,
     });
+  };
+
+  const confirmDeleteTransaction = async () => {
+    setDeleteModal((prev) => ({ ...prev, isDeleting: true }));
+
+    try {
+      await deleteTransaction(deleteModal.transactionId);
+      transactionSuccess("Transação excluída com sucesso");
+      setDeleteModal({ visible: false, transactionId: "", isDeleting: false });
+    } catch (error) {
+      transactionError("Não foi possível excluir a transação");
+      setDeleteModal((prev) => ({ ...prev, isDeleting: false }));
+    }
+  };
+
+  const cancelDeleteTransaction = () => {
+    setDeleteModal({ visible: false, transactionId: "", isDeleting: false });
   };
 
   const handleProcessTransaction = async (
@@ -310,6 +325,15 @@ export function ExtractPage() {
             )}
         </View>
       </View>
+
+      {/* Modal de Confirmação de Exclusão */}
+      <ConfirmDeleteModal
+        visible={deleteModal.visible}
+        onConfirm={confirmDeleteTransaction}
+        onCancel={cancelDeleteTransaction}
+        isDeleting={deleteModal.isDeleting}
+        transactionId={deleteModal.transactionId}
+      />
     </View>
   );
 }

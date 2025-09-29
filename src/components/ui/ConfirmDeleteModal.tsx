@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Modal,
   View,
@@ -6,10 +5,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-} from 'react-native';
-import { AlertTriangle, X } from 'lucide-react-native';
-import { useTheme } from '../../../hooks/useTheme';
-import { getTheme } from '../../../styles/theme';
+} from "react-native";
+import { AlertTriangle, X } from "lucide-react-native";
+import { useTheme } from "../../hooks/useTheme";
+import { getTheme } from "../../styles/theme";
 
 interface ConfirmDeleteModalProps {
   visible: boolean;
@@ -24,7 +23,7 @@ export function ConfirmDeleteModal({
   onConfirm,
   onCancel,
   isDeleting = false,
-  transactionId = '',
+  transactionId = "",
 }: ConfirmDeleteModalProps) {
   const { isDark } = useTheme();
   const theme = getTheme(isDark);
@@ -58,16 +57,14 @@ export function ConfirmDeleteModal({
           {/* Content */}
           <View style={styles.content}>
             <Text style={styles.message}>
-              Tem certeza que deseja excluir esta transação?
+              ⚠️ Tem certeza que deseja excluir esta transação?
             </Text>
-            {transactionId && (
+            <Text style={styles.message}>Esta ação não pode ser desfeita.</Text>
+            {/* {transactionId && (
               <Text style={styles.transactionInfo}>
                 ID: {transactionId.slice(-8)}
               </Text>
-            )}
-            <Text style={styles.warning}>
-              ⚠️ Esta ação não pode ser desfeita.
-            </Text>
+            )} */}
           </View>
 
           {/* Actions */}
@@ -106,17 +103,17 @@ const createStyles = (isDark: boolean, theme: any) => {
   return StyleSheet.create({
     overlay: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      justifyContent: 'center',
-      alignItems: 'center',
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
       paddingHorizontal: 20,
     },
     modalContainer: {
       backgroundColor: theme.card,
       borderRadius: 12,
-      width: '100%',
+      width: "100%",
       maxWidth: 400,
-      shadowColor: '#000',
+      shadowColor: "#000",
       shadowOffset: {
         width: 0,
         height: 4,
@@ -126,22 +123,22 @@ const createStyles = (isDark: boolean, theme: any) => {
       elevation: 8,
     },
     header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       padding: 20,
       paddingBottom: 16,
       borderBottomWidth: 1,
       borderBottomColor: theme.border,
     },
     headerContent: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       gap: 12,
     },
     title: {
       fontSize: 18,
-      fontWeight: '600',
+      fontWeight: "600",
       color: theme.foreground,
     },
     closeButton: {
@@ -162,15 +159,15 @@ const createStyles = (isDark: boolean, theme: any) => {
       fontSize: 14,
       color: theme.mutedForeground,
       marginBottom: 16,
-      fontFamily: 'monospace',
+      fontFamily: "monospace",
     },
     warning: {
       fontSize: 14,
       color: theme.destructive,
-      fontWeight: '500',
+      fontWeight: "500",
     },
     actions: {
-      flexDirection: 'row',
+      flexDirection: "row",
       gap: 12,
       padding: 20,
       paddingTop: 0,
@@ -180,8 +177,8 @@ const createStyles = (isDark: boolean, theme: any) => {
       paddingVertical: 12,
       paddingHorizontal: 16,
       borderRadius: 8,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       minHeight: 44,
     },
     cancelButton: {
@@ -194,13 +191,13 @@ const createStyles = (isDark: boolean, theme: any) => {
     },
     buttonText: {
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: "600",
     },
     cancelButtonText: {
       color: theme.foreground,
     },
     deleteButtonText: {
-      color: '#ffffff',
+      color: "#ffffff",
     },
   });
 };
