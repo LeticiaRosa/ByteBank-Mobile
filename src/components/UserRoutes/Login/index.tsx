@@ -2,7 +2,6 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import { useState } from "react";
@@ -16,6 +15,7 @@ import {
 } from "lucide-react-native";
 import { useTheme } from "../../../hooks/useTheme";
 import { useAuth } from "../../../hooks/useAuth";
+import { useToast } from "../../../hooks/useToast";
 import { getTheme } from "../../../styles/theme";
 import { CustomText } from "../../ui/Text";
 import { styles } from "./styles";
@@ -23,6 +23,7 @@ import { styles } from "./styles";
 export function Login() {
   const { isDark } = useTheme();
   const { signIn, signUp, loading } = useAuth();
+  const { validationError, authError, authSuccess, showInfo } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -39,43 +40,45 @@ export function Login() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert("Erro", "Por favor, preencha todos os campos");
+      validationError("Por favor, preencha todos os campos");
       return;
     }
 
     const result = await signIn(email, password);
 
     if (!result.success) {
-      Alert.alert("Erro", result.error?.message || "Erro ao fazer login");
+      authError(result.error?.message || "Erro ao fazer login");
     }
   };
 
   const handleSignUp = async () => {
     if (!email || !password || !fullName) {
-      Alert.alert("Erro", "Por favor, preencha todos os campos");
+      validationError("Por favor, preencha todos os campos");
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert("Erro", "A senha deve ter pelo menos 6 caracteres");
+      validationError("A senha deve ter pelo menos 6 caracteres");
       return;
     }
 
     const result = await signUp(email, password, fullName);
 
     if (result.success) {
-      Alert.alert(
-        "Sucesso",
+      authSuccess(
         "Conta criada com sucesso! Verifique seu email para confirmar a conta."
       );
       setIsSignUpMode(false); // Voltar para o modo login
     } else {
-      Alert.alert("Erro", result.error?.message || "Erro ao criar conta");
+      authError(result.error?.message || "Erro ao criar conta");
     }
   };
 
   const handleForgotPassword = () => {
-    Alert.alert("Recuperar Senha", "Funcionalidade em desenvolvimento");
+    showInfo({
+      message: "Funcionalidade em desenvolvimento",
+      title: "Recuperar Senha",
+    });
   };
 
   const toggleMode = () => {

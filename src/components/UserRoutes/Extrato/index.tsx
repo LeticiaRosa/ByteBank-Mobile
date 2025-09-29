@@ -10,6 +10,7 @@ import { useTransactions } from "../../../hooks/useTransactions";
 import { useFilteredTransactions } from "../../../hooks/useFilteredTransactions";
 import { useAuth } from "../../../hooks/useAuth";
 import { useTheme } from "../../../hooks/useTheme";
+import { useToast } from "../../../hooks/useToast";
 import { getTheme } from "../../../styles/theme";
 // Importação de tipos
 import type { Transaction, PaginationOptions } from "../../../lib/transactions";
@@ -26,6 +27,7 @@ export function ExtractPage() {
   const { deleteTransaction } = useTransactions();
   const { user } = useAuth();
   const { isDark } = useTheme();
+  const { showInfo, showWarning, transactionSuccess, transactionError } = useToast();
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -112,19 +114,28 @@ export function ExtractPage() {
 
   // Funções de callback para o menu de ações
   const handleEditTransaction = async (transaction: Transaction) => {
-    // Implementar notificação toast no React Native
-    console.log("Editar transação", transaction.id.slice(-8));
+    showInfo({
+      title: "Editar Transação",
+      message: `Transação ${transaction.id.slice(-8)} selecionada para edição`,
+    });
   };
 
   const handleDeleteTransaction = async (transactionId: string) => {
-    try {
-      await deleteTransaction(transactionId);
-      // Implementar notificação toast no React Native
-      console.log("Transação excluída com sucesso");
-    } catch (error) {
-      // Implementar notificação toast no React Native
-      console.error("Não foi possível excluir a transação", error);
-    }
+    // Mostrar toast de confirmação
+    showWarning({
+      title: "Confirmar Exclusão",
+      message: "Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita.",
+      duration: 6000, // Maior duração para dar tempo de ler
+      onPress: async () => {
+        // Usuário tocou no toast para confirmar
+        try {
+          await deleteTransaction(transactionId);
+          transactionSuccess("Transação excluída com sucesso");
+        } catch (error) {
+          transactionError("Não foi possível excluir a transação");
+        }
+      },
+    });
   };
 
   const handleProcessTransaction = async (
@@ -133,15 +144,14 @@ export function ExtractPage() {
   ) => {
     try {
       // Função processTransaction removida pois não existe no hook
-      // Exibimos apenas log para simular a ação
-      console.log(
-        `Transação ${transactionId} ${
+      // Exibimos toast para simular a ação
+      transactionSuccess(
+        `Transação ${transactionId.slice(-8)} ${
           action === "complete" ? "concluída" : "marcada como falha"
         } com sucesso`
       );
     } catch (error) {
-      // Implementar notificação toast no React Native
-      console.error("Não foi possível processar a transação", error);
+      transactionError("Não foi possível processar a transação");
     }
   };
 

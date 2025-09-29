@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
+import { useToast } from "./useToast";
 
 // Tipos para os dados do dashboard
 export interface MonthlyBalanceData {

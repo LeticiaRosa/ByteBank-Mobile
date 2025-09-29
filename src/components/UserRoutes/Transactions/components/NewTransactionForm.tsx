@@ -37,6 +37,7 @@ import {
   Check,
 } from "lucide-react-native";
 import { useTheme } from "../../../../hooks/useTheme";
+import { useToast } from "../../../../hooks/useToast";
 import {
   type CreateTransactionData,
   type Transaction,
@@ -235,10 +236,10 @@ export function NewTransactionForm({
         await ImagePicker.requestCameraPermissionsAsync();
 
       if (!cameraPermission.granted) {
-        Alert.alert(
-          "Permissão necessária",
-          "Precisamos da permissão para acessar sua câmera."
-        );
+        showInfo({
+          title: "Permissão necessária",
+          message: "Precisamos da permissão para acessar sua câmera.",
+        });
         return;
       }
 
@@ -257,7 +258,9 @@ export function NewTransactionForm({
       }
     } catch (error) {
       console.error("Erro ao tirar foto:", error);
-      Alert.alert("Erro", "Não foi possível tirar a foto. Tente novamente.");
+      showError({
+        message: "Não foi possível tirar a foto. Tente novamente.",
+      });
     }
   };
 
@@ -270,10 +273,11 @@ export function NewTransactionForm({
         await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (!permissionResult.granted) {
-        Alert.alert(
-          "Permissão necessária",
-          "Precisamos da permissão para acessar sua biblioteca de imagens."
-        );
+        showInfo({
+          title: "Permissão necessária",
+          message:
+            "Precisamos da permissão para acessar sua biblioteca de imagens.",
+        });
         return;
       }
 
@@ -292,26 +296,24 @@ export function NewTransactionForm({
       }
     } catch (error) {
       console.error("Erro ao selecionar imagem:", error);
-      Alert.alert(
-        "Erro",
-        "Não foi possível selecionar a imagem. Tente novamente."
-      );
+      showError({
+        message: "Não foi possível selecionar a imagem. Tente novamente.",
+      });
     }
   };
 
   // Função para submeter o formulário
   const handleSubmit = () => {
     if (!validateForm()) {
-      Alert.alert("Erro de validação", "Verifique os campos obrigatórios", [
-        { text: "OK" },
-      ]);
+      validationError("Verifique os campos obrigatórios");
       return;
     }
 
     if (!primaryAccount) {
-      Alert.alert("Erro", "Nenhuma conta bancária encontrada!", [
-        { text: "OK" },
-      ]);
+      showError({
+        title: "Conta Bancária",
+        message: "Nenhuma conta bancária encontrada!",
+      });
       return;
     }
 
@@ -372,11 +374,10 @@ export function NewTransactionForm({
       ) {
         const toAccount = findAccountByNumber(formData.to_account_number);
         if (!toAccount) {
-          Alert.alert(
-            "Conta não encontrada",
-            "A conta de destino informada não foi encontrada",
-            [{ text: "OK" }]
-          );
+          showError({
+            title: "Conta não encontrada",
+            message: "A conta de destino informada não foi encontrada",
+          });
           return;
         }
         transactionData.to_account_id = toAccount.id;
@@ -393,8 +394,7 @@ export function NewTransactionForm({
           })
           .catch((error) => {
             console.error("Erro ao atualizar transação:", error);
-            Alert.alert(
-              "Erro",
+            transactionError(
               "Não foi possível atualizar a transação. Tente novamente."
             );
           });
@@ -416,16 +416,14 @@ export function NewTransactionForm({
           })
           .catch((error) => {
             console.error("Erro ao criar transação:", error);
-            Alert.alert(
-              "Erro",
+            transactionError(
               "Não foi possível criar a transação. Tente novamente."
             );
           });
       }
     } catch (error) {
       console.error("Erro ao processar transação:", error);
-      Alert.alert(
-        "Erro",
+      transactionError(
         "Ocorreu um erro ao processar a transação. Tente novamente."
       );
     }
@@ -446,6 +444,7 @@ export function NewTransactionForm({
 
   // Cores com base no tema
   const { isDark } = useTheme();
+  const { showInfo, showError, validationError, transactionError } = useToast();
 
   // Cores dinâmicas com base no tema
   const colors = {
