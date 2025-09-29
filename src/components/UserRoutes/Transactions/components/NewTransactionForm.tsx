@@ -178,14 +178,8 @@ export function NewTransactionForm({
       newErrors.description = "Descrição é obrigatória";
     }
 
-    // Validar conta de destino para transferências
-    if (
-      formData.transaction_type === "transfer" &&
-      !formData.to_account_number?.trim()
-    ) {
-      newErrors.to_account_number =
-        "Conta de destino é obrigatória para transferências";
-    }
+    // Validar conta de destino para transferências (opcional)
+    // Conta de destino agora é opcional para transferências
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -678,7 +672,7 @@ export function NewTransactionForm({
           {formData.transaction_type === "transfer" && (
             <View style={styles.inputContainer}>
               <Text style={[styles.label, { color: colors.text }]}>
-                Conta de Destino *
+                Conta de Destino
               </Text>
               <TextInput
                 style={[
@@ -695,7 +689,7 @@ export function NewTransactionForm({
                 onChangeText={(text) =>
                   handleInputChange("to_account_number", text)
                 }
-                placeholder="Digite o número da conta"
+                placeholder="Digite o número da conta (opcional)"
                 placeholderTextColor={colors.placeholder}
                 keyboardType="numeric"
               />

@@ -29,7 +29,6 @@ export interface BankAccount {
 
 export interface CreateBankAccountData {
   account_type?: "checking" | "savings" | "business";
-  balance?: number;
   currency?: string;
 }
 
@@ -74,82 +73,53 @@ class AuthenticationService {
 class BankAccountService {
   public async createBankAccount(
     userId: string,
-    accountData: CreateBankAccountData
+    accountData: CreateBankAccountData,
+    retryAttempts: number = 3
   ): Promise<BankAccount> {
-    // Verificar se o usuário está autenticado e obter sessão
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession();
-
-    if (sessionError || !session || !session.user) {
-      throw new Error("Usuário não autenticado ou sessão inválida");
-    }
-
-    if (session.user.id !== userId) {
-      throw new Error("ID do usuário não confere com usuário autenticado");
-    }
-
-    // Verificar se o usuário já tem uma conta ativa
-    const { data: existingAccounts, error: checkError } = await supabase
-      .from("bank_accounts")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("is_active", true)
-      .limit(1);
-
-    if (checkError) {
-      console.warn("Erro ao verificar contas existentes:", checkError.message);
-    }
-
-    if (existingAccounts && existingAccounts.length > 0) {
-      throw new Error("Usuário já possui uma conta bancária ativa");
-    }
-
-    // Gerar número de conta único usando a função do banco
-    const { data: accountNumber, error: accountNumberError } =
-      await supabase.rpc("generate_account_number");
-
-    if (accountNumberError || !accountNumber) {
-      throw new Error("Erro ao gerar número da conta");
-    }
-
-    // Converter balance de reais para centavos (valores decimais para bigint)
-    const balanceInCents = Math.round((accountData.balance || 0) * 100);
-
-    const bankAccountData = {
-      user_id: userId,
-      account_number: accountNumber,
-      account_type: accountData.account_type || "checking",
-      balance: balanceInCents, // Em centavos como bigint
-      currency: accountData.currency || "BRL",
-      is_active: true,
-    };
-
-    // Tentar inserir com retry para lidar com problemas de sessão
-    let attempts = 0;
-    const maxAttempts = 3;
-
-    while (attempts < maxAttempts) {
-      attempts++;
-
+    for (let attempt = 1; attempt <= retryAttempts; attempt++) {
       try {
-        const { data, error } = await supabase
-          .from("bank_accounts")
-          .insert(bankAccountData)
-          .select()
-          .single();
+        // Verificar se o usuário está autenticado e obter sessão
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
 
-        if (error) {
-          // Se for erro de RLS e ainda temos tentativas, aguardar um pouco
-          if (
-            error.message.includes("row-level security") &&
-            attempts < maxAttempts
-          ) {
-            console.warn(`Tentativa ${attempts}: Erro de RLS, aguardando...`);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+        if (sessionError) {
+          console.warn(`Tentativa ${attempt}: Erro na sessão:`, sessionError);
+          if (attempt < retryAttempts) {
+            await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
             continue;
           }
+          throw new Error(`Erro na sessão: ${sessionError.message}`);
+        }
+
+        if (!session || !session.user) {
+          console.warn(
+            `Tentativa ${attempt}: Sessão não encontrada ou usuário não autenticado`
+          );
+          if (attempt < retryAttempts) {
+            await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+            continue;
+          }
+          throw new Error("Usuário não autenticado ou sessão inválida");
+        }
+
+        if (session.user.id !== userId) {
+          throw new Error("ID do usuário não confere com usuário autenticado");
+        }
+
+        console.log(
+          `Tentativa ${attempt}: Sessão válida encontrada, criando conta bancária...`
+        );
+
+        // Usar a função create_user_bank_account do banco de dados
+        const { data, error } = await supabase.rpc("create_user_bank_account", {
+          p_user_id: userId,
+          p_account_type: accountData.account_type || "checking",
+          p_currency: accountData.currency || "BRL",
+        });
+
+        if (error) {
           throw new Error(`Erro ao criar conta bancária: ${error.message}`);
         }
 
@@ -157,19 +127,38 @@ class BankAccountService {
           throw new Error("Erro ao criar conta bancária: resposta vazia");
         }
 
-        // Converter balance de volta para reais para retorno da interface
+        // A função do banco retorna dados estruturados
+        const response = data as any;
+
+        // Verificar se a resposta indica sucesso
+        if (!response.success) {
+          throw new Error(
+            `Erro ao criar conta bancária: ${
+              response.error || "Resposta indica falha"
+            }`
+          );
+        }
+
+        const bankAccount = response.account;
+
+        // Verificar se a resposta tem a estrutura esperada
+        if (!bankAccount.id || !bankAccount.account_number) {
+          throw new Error("Resposta inválida ao criar conta bancária");
+        }
+
+        // Converter balance de centavos para reais se necessário
         const result = {
-          ...data,
-          balance: (data.balance || 0) / 100, // Converter centavos para reais
+          ...bankAccount,
+          balance: bankAccount.balance ? bankAccount.balance / 100 : 0,
         };
 
         return result as BankAccount;
       } catch (error) {
-        if (attempts === maxAttempts) {
+        console.error(`Tentativa ${attempt} falhou:`, error);
+        if (attempt === retryAttempts) {
           throw error;
         }
-        console.warn(`Tentativa ${attempts} falhou:`, error);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
       }
     }
 
@@ -184,6 +173,9 @@ const bankAccountService = new BankAccountService();
 export function useAuth() {
   const queryClient = useQueryClient();
   const [initializing, setInitializing] = useState(true);
+  const [pendingBankAccountCreation, setPendingBankAccountCreation] = useState<
+    string | null
+  >(null);
 
   // Query para obter o usuário atual
   const {
@@ -232,6 +224,10 @@ export function useAuth() {
       if (data.data.user) {
         queryClient.setQueryData(AUTH_KEYS.user, data.data.user);
         queryClient.invalidateQueries({ queryKey: AUTH_KEYS.session });
+
+        // Invalidar todas as queries quando o usuário faz login
+        // Isso garante que todos os dados sejam recarregados com as informações mais atuais
+        queryClient.invalidateQueries();
       }
     },
     onError: (error) => {
@@ -253,6 +249,10 @@ export function useAuth() {
       if (data.data.user) {
         queryClient.setQueryData(AUTH_KEYS.user, data.data.user);
         queryClient.invalidateQueries({ queryKey: AUTH_KEYS.session });
+
+        // Invalidar todas as queries quando um novo usuário é criado e logado
+        // Isso garante que todos os dados sejam carregados para o novo usuário
+        queryClient.invalidateQueries();
       }
     },
     onError: (error) => {
@@ -292,18 +292,73 @@ export function useAuth() {
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_IN" && session?.user) {
         queryClient.setQueryData(AUTH_KEYS.user, session.user as User);
+
+        // Invalidar todas as queries quando o usuário faz login (incluindo login automático)
+        // Isso garante que todos os dados sejam recarregados com as informações mais atuais
+        queryClient.invalidateQueries();
+
+        // Se há um usuário pendente para criação de conta bancária, criar agora
+        if (pendingBankAccountCreation === session.user.id) {
+          console.log(
+            "Sessão estabelecida, criando conta bancária para usuário:",
+            session.user.id
+          );
+
+          try {
+            // Verificar se o usuário já tem uma conta bancária
+            const { data: existingAccounts } = await supabase
+              .from("bank_accounts")
+              .select("id")
+              .eq("user_id", session.user.id)
+              .eq("is_active", true)
+              .limit(1);
+
+            if (!existingAccounts || existingAccounts.length === 0) {
+              // Aguardar um pouco mais para garantir que a sessão está completamente estabelecida
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+
+              const bankAccountResult =
+                await createBankAccountMutation.mutateAsync({
+                  userId: session.user.id,
+                  accountData: {
+                    account_type: "checking",
+                    currency: "BRL",
+                  },
+                });
+
+              console.log(
+                "Conta bancária criada com sucesso:",
+                bankAccountResult
+              );
+            } else {
+              console.log("Usuário já possui conta bancária ativa");
+            }
+          } catch (error) {
+            console.error(
+              "Erro ao criar conta bancária após sessão estabelecida:",
+              error
+            );
+          }
+
+          // Limpar o estado pendente
+          setPendingBankAccountCreation(null);
+        }
       } else if (event === "SIGNED_OUT") {
         queryClient.setQueryData(AUTH_KEYS.user, null);
+
+        // Limpar todas as queries quando o usuário faz logout
+        queryClient.clear();
+
+        // Limpar estado pendente
+        setPendingBankAccountCreation(null);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [queryClient]);
-
-  // Helper functions
+  }, [queryClient, pendingBankAccountCreation, createBankAccountMutation]); // Helper functions
   const signIn = async (email: string, password: string) => {
     try {
       const result = await signInMutation.mutateAsync({ email, password });
@@ -347,53 +402,17 @@ export function useAuth() {
         };
       }
 
-      // Se o usuário foi criado com sucesso, criar uma conta bancária padrão
+      // Se o usuário foi criado com sucesso, marcar para criação de conta bancária
       if (result.data.user) {
-        try {
-          // Aguardar um momento para garantir que a sessão seja estabelecida
-          await new Promise((resolve) => setTimeout(resolve, 2000));
+        console.log(
+          "Usuário criado com sucesso, marcando para criação de conta bancária:",
+          result.data.user.id
+        );
 
-          // Verificar se a sessão foi estabelecida corretamente
-          const { data: sessionData, error: sessionError } =
-            await supabase.auth.getSession();
+        // Marcar que este usuário precisa de uma conta bancária quando a sessão for estabelecida
+        setPendingBankAccountCreation(result.data.user.id);
 
-          if (sessionError || !sessionData.session) {
-            console.warn(
-              "Sessão não estabelecida ainda, usuário pode criar conta manualmente depois"
-            );
-            return { success: true, user: result.data.user };
-          }
-
-          console.log(
-            "Criando conta bancária automática para o usuário:",
-            result.data.user.id
-          );
-
-          const bankAccountResult = await createBankAccountMutation.mutateAsync(
-            {
-              userId: result.data.user.id,
-              accountData: {
-                account_type: "checking", // Conta corrente como padrão
-                balance: 0.0,
-                currency: "BRL",
-              },
-            }
-          );
-
-          console.log("Conta bancária criada com sucesso:", bankAccountResult);
-        } catch (bankAccountError: any) {
-          // Se falhar ao criar a conta bancária, ainda retorna sucesso no signup
-          // mas loga o erro para investigação
-          console.error(
-            "Erro ao criar conta bancária automática:",
-            bankAccountError
-          );
-
-          // NOTA: Se a criação automática falhar, o usuário pode usar o BankAccountCreationHelper
-          // para tentar criar a conta manualmente depois do login
-          // Exemplo: BankAccountCreationHelper.createBankAccountManual()
-          // Não falha o signup por causa disso, mas pode ser tratado posteriormente
-        }
+        // Não tentar criar a conta bancária aqui, deixar para o listener de auth state
       }
 
       return { success: true, user: result.data.user };
@@ -447,6 +466,15 @@ export function useAuth() {
     }
   };
 
+  // Função utilitária para invalidar queries específicas (caso necessário)
+  const invalidateUserData = () => {
+    queryClient.invalidateQueries({ queryKey: ["bank_accounts"] });
+    queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    queryClient.invalidateQueries({ queryKey: ["monthly-financial-summary"] });
+    queryClient.invalidateQueries({ queryKey: ["expenses-by-category"] });
+    queryClient.invalidateQueries({ queryKey: ["user-accounts-summary"] });
+  };
+
   return {
     user,
     loading:
@@ -461,5 +489,6 @@ export function useAuth() {
     signUp,
     signOut,
     createBankAccount,
+    invalidateUserData, // Função para invalidar queries específicas quando necessário
   };
 }
