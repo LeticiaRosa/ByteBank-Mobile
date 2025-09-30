@@ -247,19 +247,48 @@ export function NewTransactionForm({
         mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.8,
+        quality: 0.7, // Reduzir qualidade para menor tamanho
+        exif: false, // Remover metadados EXIF para reduzir tamanho
+        base64: false, // Não precisamos de base64 aqui
+        // Configurações para otimizar o upload
+        selectionLimit: 1,
+        preferredAssetRepresentationMode:
+          ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
       });
 
-      if (!result.canceled) {
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+
+        // Verificar tamanho do arquivo
+        const fileSizeKB = asset.fileSize ? asset.fileSize / 1024 : 0;
+        console.log(`📊 Tamanho da imagem: ${fileSizeKB.toFixed(1)}KB`);
+
+        if (fileSizeKB > 5000) {
+          // 5MB
+          showInfo({
+            title: "Arquivo muito grande",
+            message:
+              "Por favor, tire uma foto com menor resolução ou use uma imagem menor que 5MB.",
+          });
+          return;
+        }
+
         setFormData((prev) => ({
           ...prev,
-          receipt_file: result.assets[0],
+          receipt_file: asset,
         }));
+
+        showInfo({
+          title: "Foto capturada",
+          message: "Comprovante adicionado com sucesso!",
+        });
       }
     } catch (error) {
       console.error("Erro ao tirar foto:", error);
       showError({
-        message: "Não foi possível tirar a foto. Tente novamente.",
+        title: "Erro na câmera",
+        message:
+          "Não foi possível tirar a foto. Verifique as permissões e tente novamente.",
       });
     }
   };
@@ -285,19 +314,48 @@ export function NewTransactionForm({
         mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.8,
+        quality: 0.7, // Reduzir qualidade para menor tamanho
+        exif: false, // Remover metadados EXIF
+        base64: false, // Não precisamos de base64
+        // Configurações para otimizar o upload
+        selectionLimit: 1,
+        preferredAssetRepresentationMode:
+          ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
       });
 
-      if (!result.canceled) {
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+
+        // Verificar tamanho do arquivo
+        const fileSizeKB = asset.fileSize ? asset.fileSize / 1024 : 0;
+        console.log(`📊 Tamanho da imagem: ${fileSizeKB.toFixed(1)}KB`);
+
+        if (fileSizeKB > 5000) {
+          // 5MB
+          showInfo({
+            title: "Arquivo muito grande",
+            message:
+              "Por favor, selecione uma imagem menor que 5MB ou edite-a para reduzir o tamanho.",
+          });
+          return;
+        }
+
         setFormData((prev) => ({
           ...prev,
-          receipt_file: result.assets[0],
+          receipt_file: asset,
         }));
+
+        showInfo({
+          title: "Imagem selecionada",
+          message: "Comprovante adicionado com sucesso!",
+        });
       }
     } catch (error) {
       console.error("Erro ao selecionar imagem:", error);
       showError({
-        message: "Não foi possível selecionar a imagem. Tente novamente.",
+        title: "Erro na galeria",
+        message:
+          "Não foi possível selecionar a imagem. Verifique as permissões e tente novamente.",
       });
     }
   };
@@ -330,41 +388,7 @@ export function NewTransactionForm({
         from_account_id: primaryAccount.id,
         category: formData.category,
         sender_name: formData.sender_name.trim() || undefined,
-        receipt_file: formData.receipt_file
-          ? (() => {
-              // Garantir tipo MIME correto
-              let mimeType = formData.receipt_file.mimeType;
-              const ext = (
-                formData.receipt_file.fileName || formData.receipt_file.uri
-              )
-                ?.split(".")
-                .pop()
-                ?.toLowerCase();
-
-              if (!mimeType) {
-                switch (ext) {
-                  case "jpg":
-                  case "jpeg":
-                    mimeType = "image/jpeg";
-                    break;
-                  case "png":
-                    mimeType = "image/png";
-                    break;
-                  case "webp":
-                    mimeType = "image/webp";
-                    break;
-                  default:
-                    mimeType = "image/jpeg";
-                }
-              }
-
-              return {
-                uri: formData.receipt_file.uri,
-                type: mimeType,
-                name: `receipt-${Date.now()}.${ext || "jpg"}`,
-              };
-            })()
-          : undefined,
+        receipt_file: formData.receipt_file || undefined,
       };
 
       // Para transferências, buscar conta de destino
@@ -416,9 +440,30 @@ export function NewTransactionForm({
           })
           .catch((error) => {
             console.error("Erro ao criar transação:", error);
-            transactionError(
-              "Não foi possível criar a transação. Tente novamente."
-            );
+
+            // Tratar erros específicos de upload
+            if (
+              error.message &&
+              error.message.includes("Network request failed")
+            ) {
+              showError({
+                title: "Problema de Conectividade",
+                message:
+                  "A transação foi criada, mas houve problema no upload do comprovante. Verifique sua conexão e tente anexar o comprovante editando a transação.",
+                duration: 8000,
+              });
+            } else if (error.message && error.message.includes("upload")) {
+              showError({
+                title: "Erro no Upload",
+                message:
+                  "A transação foi criada com sucesso, mas não foi possível anexar o comprovante. Você pode tentar novamente editando a transação.",
+                duration: 6000,
+              });
+            } else {
+              transactionError(
+                "Não foi possível criar a transação. Tente novamente."
+              );
+            }
           });
       }
     } catch (error) {

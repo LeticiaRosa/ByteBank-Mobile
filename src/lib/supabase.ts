@@ -1,6 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, processLock } from "@supabase/supabase-js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import { Database } from "./database.types";
 import { clientEnv } from "../env/client";
 
@@ -13,6 +12,7 @@ export const supabase = createClient<Database>(
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,
+      lock: processLock,
     },
   }
 );
