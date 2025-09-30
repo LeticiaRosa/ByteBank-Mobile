@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity } from "react-native";
+import { useState } from "react";
 import { Transaction } from "../../../../lib/transactions";
 import { useTheme } from "../../../../hooks/useTheme";
 import { getTheme, getColorScale, colors } from "../../../../styles/theme";
@@ -17,6 +18,7 @@ export function TransactionItem({
   onProcess,
 }: TransactionItemProps) {
   const { isDark } = useTheme();
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
 
   // Cores dinâmicas baseadas no tema centralizado
   const theme = getTheme(isDark);
@@ -103,8 +105,7 @@ export function TransactionItem({
   };
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.8}
+    <View
       style={{
         backgroundColor: transactionColors.cardBackground,
         borderRadius: 12,
@@ -116,7 +117,7 @@ export function TransactionItem({
         shadowRadius: 4,
         elevation: 3,
       }}
-      onPress={() => onEdit && onEdit(transaction)}
+      // onPress={() => onEdit && onEdit(transaction)}
     >
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <View style={{ flexDirection: "row", flex: 1, gap: 16 }}>
@@ -279,23 +280,146 @@ export function TransactionItem({
             >
               {formatDate(transaction.created_at)}
             </Text>
-
-            {transaction.reference_number && (
-              <Text
-                style={{ fontSize: 12, color: transactionColors.textMuted }}
-              >
-                Ref: {transaction.reference_number}
-              </Text>
-            )}
           </View>
         </View>
 
-        {/* Valor */}
-        <View style={{ alignItems: "flex-end", justifyContent: "center" }}>
+        {/* Valor e Menu */}
+        <View
+          style={{
+            alignItems: "flex-end",
+            gap: 16,
+            justifyContent: "space-between",
+          }}
+        >
+          {/* Menu de três pontos */}
+          <View
+            style={{
+              position: "relative",
+              marginTop: 8,
+            }}
+          >
+            <TouchableOpacity
+              style={{
+                padding: 8,
+                borderRadius: 16,
+                backgroundColor: transactionColors.iconBackground,
+                width: 32,
+                height: 32,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onPress={() => setIsMenuVisible(!isMenuVisible)}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "bold",
+                  color: transactionColors.textPrimary,
+                  lineHeight: 16,
+                }}
+              >
+                ⋯
+              </Text>
+            </TouchableOpacity>
+
+            {/* Menu dropdown */}
+            {isMenuVisible && (
+              <>
+                {/* Overlay invisível para fechar o menu quando clicar fora */}
+                <TouchableOpacity
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 9999,
+                  }}
+                  onPress={() => setIsMenuVisible(false)}
+                  activeOpacity={1}
+                />
+
+                {/* Menu posicionado relativamente ao botão */}
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 40, // Logo abaixo do botão de três pontos
+                    right: 0,
+                    backgroundColor: transactionColors.cardBackground,
+                    borderRadius: 8,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: isDark ? 0.4 : 0.15,
+                    shadowRadius: 8,
+                    elevation: 8,
+                    minWidth: 140,
+                    borderWidth: 1,
+                    borderColor: theme.border,
+                    zIndex: 10000,
+                  }}
+                >
+                  {onEdit && (
+                    <TouchableOpacity
+                      style={{
+                        paddingHorizontal: 16,
+                        paddingVertical: 12,
+                        borderBottomWidth: onDelete ? 1 : 0,
+                        borderBottomColor: theme.border,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 8,
+                      }}
+                      onPress={() => {
+                        setIsMenuVisible(false);
+                        onEdit(transaction);
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          color: transactionColors.textPrimary,
+                          fontWeight: "500",
+                        }}
+                      >
+                        Editar
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+
+                  {onDelete && (
+                    <TouchableOpacity
+                      style={{
+                        paddingHorizontal: 16,
+                        paddingVertical: 12,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 8,
+                      }}
+                      onPress={() => {
+                        setIsMenuVisible(false);
+                        onDelete(transaction.id);
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          color: colors.destructive[isDark ? "dark" : "light"],
+                          fontWeight: "500",
+                        }}
+                      >
+                        Excluir
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </>
+            )}
+          </View>
           <Text
             style={{
               fontSize: 18,
               fontWeight: "bold",
+              paddingBottom: 4,
               color:
                 transaction.transaction_type === "deposit"
                   ? transactionColors.depositText
@@ -306,45 +430,51 @@ export function TransactionItem({
             {formatAmount(transaction.amount)}
           </Text>
 
-          {/* Botões de ação se necessário */}
-          {(onDelete || onProcess) && (
+          {/* Botões de processo para transações pendentes */}
+          {onProcess && transaction.status === "pending" && (
             <View style={{ flexDirection: "row", marginTop: 8, gap: 8 }}>
-              {onDelete && (
-                <TouchableOpacity
-                  style={{ padding: 4 }}
-                  onPress={() => onDelete(transaction.id)}
+              <TouchableOpacity
+                style={{
+                  padding: 6,
+                  borderRadius: 4,
+                  backgroundColor: colors.charts.main.green + "20",
+                }}
+                onPress={() => onProcess(transaction.id, "complete")}
+              >
+                <Text
+                  style={{
+                    color: colors.charts.main.green,
+                    fontSize: 12,
+                    fontWeight: "600",
+                  }}
                 >
-                  <Text style={{ color: "#ef4444", fontSize: 12 }}>
-                    Excluir
-                  </Text>
-                </TouchableOpacity>
-              )}
+                  ✓ Concluir
+                </Text>
+              </TouchableOpacity>
 
-              {onProcess && transaction.status === "pending" && (
-                <View style={{ flexDirection: "row", gap: 8 }}>
-                  <TouchableOpacity
-                    style={{ padding: 4 }}
-                    onPress={() => onProcess(transaction.id, "complete")}
-                  >
-                    <Text style={{ color: "#16a34a", fontSize: 12 }}>
-                      Concluir
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={{ padding: 4 }}
-                    onPress={() => onProcess(transaction.id, "fail")}
-                  >
-                    <Text style={{ color: "#dc2626", fontSize: 12 }}>
-                      Falhar
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+              <TouchableOpacity
+                style={{
+                  padding: 6,
+                  borderRadius: 4,
+                  backgroundColor:
+                    colors.destructive[isDark ? "dark" : "light"] + "20",
+                }}
+                onPress={() => onProcess(transaction.id, "fail")}
+              >
+                <Text
+                  style={{
+                    color: colors.destructive[isDark ? "dark" : "light"],
+                    fontSize: 12,
+                    fontWeight: "600",
+                  }}
+                >
+                  ✗ Falhar
+                </Text>
+              </TouchableOpacity>
             </View>
           )}
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }
