@@ -44,10 +44,14 @@ export function Home() {
   }, [isLoading, isLoadingFinancialSummary, startAnimations]);
 
   // Componente wrapper animado
-  const AnimatedSection = ({ index, children }: { index: number; children: React.ReactNode }) => (
-    <Animated.View style={getAnimatedStyle(index)}>
-      {children}
-    </Animated.View>
+  const AnimatedSection = ({
+    index,
+    children,
+  }: {
+    index: number;
+    children: React.ReactNode;
+  }) => (
+    <Animated.View style={getAnimatedStyle(index)}>{children}</Animated.View>
   );
 
   if (isLoading || isLoadingFinancialSummary) {

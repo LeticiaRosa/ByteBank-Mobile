@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { Animated, ScrollView, ScrollViewProps } from 'react-native';
+import React, { useRef } from "react";
+import { Animated, ScrollView, ScrollViewProps } from "react-native";
 
 interface AnimatedScrollViewProps extends ScrollViewProps {
   children: React.ReactNode;
@@ -18,15 +18,15 @@ export function AnimatedScrollView({
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-    { 
+    {
       useNativeDriver: false,
       listener: (event: any) => {
         const offsetY = event.nativeEvent.contentOffset.y;
-        
+
         // Fade header baseado no scroll
-        const headerOpacity = offsetY > 50 ? 0 : 1 - (offsetY / 50);
+        const headerOpacity = offsetY > 50 ? 0 : 1 - offsetY / 50;
         fadeHeaderAnim.setValue(headerOpacity);
-      }
+      },
     }
   );
 
@@ -43,14 +43,17 @@ export function AnimatedScrollView({
 }
 
 // Hook para criar efeitos de parallax em componentes filhos
-export function useParallaxEffect(scrollY: Animated.Value, factor: number = 0.5) {
+export function useParallaxEffect(
+  scrollY: Animated.Value,
+  factor: number = 0.5
+) {
   return {
     transform: [
       {
         translateY: scrollY.interpolate({
           inputRange: [0, 300],
           outputRange: [0, 300 * factor],
-          extrapolate: 'clamp',
+          extrapolate: "clamp",
         }),
       },
     ],
@@ -58,12 +61,15 @@ export function useParallaxEffect(scrollY: Animated.Value, factor: number = 0.5)
 }
 
 // Hook para fade baseado no scroll
-export function useScrollFade(scrollY: Animated.Value, threshold: number = 100) {
+export function useScrollFade(
+  scrollY: Animated.Value,
+  threshold: number = 100
+) {
   return {
     opacity: scrollY.interpolate({
       inputRange: [0, threshold],
       outputRange: [1, 0],
-      extrapolate: 'clamp',
+      extrapolate: "clamp",
     }),
   };
 }

@@ -1,5 +1,5 @@
-import { useRef } from 'react';
-import { Animated } from 'react-native';
+import { useRef } from "react";
+import { Animated } from "react-native";
 
 interface StaggeredAnimationConfig {
   itemCount: number;
@@ -25,7 +25,10 @@ export function useStaggeredAnimation({
   ).current;
 
   const translateYAnims = useRef(
-    Array.from({ length: itemCount }, () => new Animated.Value(initialTranslateY))
+    Array.from(
+      { length: itemCount },
+      () => new Animated.Value(initialTranslateY)
+    )
   ).current;
 
   const scaleAnims = useRef(
@@ -60,9 +63,9 @@ export function useStaggeredAnimation({
   };
 
   const resetAnimations = () => {
-    fadeAnims.forEach(anim => anim.setValue(initialOpacity));
-    translateYAnims.forEach(anim => anim.setValue(initialTranslateY));
-    scaleAnims.forEach(anim => anim.setValue(initialScale));
+    fadeAnims.forEach((anim) => anim.setValue(initialOpacity));
+    translateYAnims.forEach((anim) => anim.setValue(initialTranslateY));
+    scaleAnims.forEach((anim) => anim.setValue(initialScale));
   };
 
   const startAnimations = () => {

@@ -29,7 +29,7 @@ export function AccountInfos({
   icon,
 }: AccountProps) {
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
-  
+
   // Animações para transições suaves
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
